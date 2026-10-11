@@ -24,9 +24,14 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Shivkrupa Enterprises API")
 
+# Which websites may call this API. Set ALLOWED_ORIGINS on the server to your
+# real frontend address(es), comma-separated, e.g. "https://shivkrupa.vercel.app".
+# If it isn't set, everything is allowed (fine for local testing only).
+_origins = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "*").split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten this to your real frontend's domain before going live
+    allow_origins=_origins or ["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -56,8 +61,8 @@ def seed_default_admin():
                 role="admin",
             ))
             db.commit()
-            print(f"[startup] Seeded first login -> username={username!r} password={password!r}. "
-                  f"Change this via SEED_ADMIN_* env vars or by adding real users.")
+            print(f"[startup] Seeded first login -> username={username!r}. "
+                  f"(Password is not printed; it comes from SEED_ADMIN_PASSWORD.)")
     finally:
         db.close()
 
