@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shivkrupa Enterprises — App Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2B2420; --ink-soft:#7A6E63;
+    --paper:#FAF7F2; --paper-raised:#FFFFFF; --line:#E6DCCE;
+    --char:#241F1B; --char-soft:#3A322C; --char-line:#4A413A; --char-text:#EFE7DC; --char-text-soft:#B4A99B;
+    --clay:#A6472B; --clay-deep:#7C341F; --clay-tint:#F3E2DB;
+    --kiln:#B67D2E; --kiln-tint:#F1E4CC;
+    --sage:#57694C; --sage-tint:#E4E9DD;
+    --font-ui:'IBM Plex Sans', system-ui, sans-serif;
+    --font-num:'IBM Plex Mono', ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#EEE6DA; --ink-soft:#B4A99B;
+      --paper:#1C1814; --paper-raised:#26211C; --line:#3A332C;
+      --char:#15120F; --char-soft:#221D19; --char-line:#39322B; --char-text:#EEE6DA; --char-text-soft:#95897B;
+      --clay-tint:#3A241C; --kiln-tint:#332A18; --sage-tint:#232C1D;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#EEE6DA; --ink-soft:#B4A99B;
+    --paper:#1C1814; --paper-raised:#26211C; --line:#3A332C;
+    --char:#15120F; --char-soft:#221D19; --char-line:#39322B; --char-text:#EEE6DA; --char-text-soft:#95897B;
+    --clay-tint:#3A241C; --kiln-tint:#332A18; --sage-tint:#232C1D;
+  }
+
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-ui); -webkit-font-smoothing:antialiased;}
+  svg.icon{width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; flex:none;}
+
+  .app{display:flex; min-height:100vh; position:relative;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:216px; flex:none; background:var(--char); color:var(--char-text);
+    display:flex; flex-direction:column; padding:22px 14px;
+  }
+  .brand{display:flex; align-items:center; gap:10px; padding:0 8px 22px 8px; border-bottom:1px solid var(--char-line); margin-bottom:16px;}
+  .brand-mark{width:30px; height:30px; border-radius:7px; background:var(--clay); display:flex; align-items:center; justify-content:center; font-size:16px;}
+  .brand-name{font-weight:600; font-size:13.5px; line-height:1.3;}
+  .brand-sub{font-size:11px; color:var(--char-text-soft); margin-top:1px;}
+
+  nav{display:flex; flex-direction:column; gap:2px;}
+  .nav-item{
+    display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:7px;
+    color:var(--char-text-soft); font-size:13.5px; cursor:pointer; user-select:none;
+    border:none; background:none; text-align:left; width:100%; font-family:var(--font-ui);
+  }
+  .nav-item:hover{background:var(--char-soft); color:var(--char-text);}
+  .nav-item.active{background:var(--clay); color:#fff;}
+
+  .sidebar-foot{margin-top:auto; padding:12px 10px 0 10px; border-top:1px solid var(--char-line); font-size:11px; color:var(--char-text-soft); line-height:1.5;}
+
+  /* ---------- Main ---------- */
+  .main{flex:1; min-width:0; display:flex; flex-direction:column;}
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 30px; border-bottom:1px solid var(--line);
+  }
+  .topbar h1{font-size:19px; margin:0; font-weight:600;}
+  .topbar .date{font-size:13px; color:var(--ink-soft); font-family:var(--font-num);}
+  .sample-tag{
+    font-size:11px; color:var(--clay-deep); background:var(--clay-tint);
+    padding:4px 9px; border-radius:20px; font-weight:500;
+  }
+  .topbar-right{display:flex; align-items:center; gap:12px;}
+
+  .content{padding:26px 30px 40px 30px;}
+  .view{display:none; animation:rise .35s ease;}
+  .view.active{display:block;}
+  @keyframes rise{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .view-title{font-size:15px; font-weight:600; margin:0 0 4px 0;}
+  .view-desc{font-size:13px; color:var(--ink-soft); margin:0 0 20px 0;}
+
+  /* ---------- Stat strip ---------- */
+  .stat-strip{display:flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-bottom:28px; background:var(--paper-raised);}
+  .stat{flex:1; padding:16px 20px; border-right:1px solid var(--line);}
+  .stat:last-child{border-right:none;}
+  .stat-label{font-size:12px; color:var(--ink-soft); margin-bottom:6px;}
+  .stat-value{font-family:var(--font-num); font-size:24px; font-weight:600; letter-spacing:-0.3px;}
+  .stat-value.clay{color:var(--clay);}
+  .stat-value.kiln{color:var(--kiln);}
+  .stat-value.sage{color:var(--sage);}
+  .stat-sub{font-size:11.5px; color:var(--ink-soft); margin-top:4px; font-family:var(--font-num);}
+
+  /* ---------- Two column dashboard ---------- */
+  .cols{display:grid; grid-template-columns:1.3fr 1fr; gap:24px;}
+  .panel{border:1px solid var(--line); border-radius:10px; background:var(--paper-raised); overflow:hidden;}
+  .panel-head{padding:14px 18px; border-bottom:1px solid var(--line); font-size:13px; font-weight:600;}
+
+  /* ---------- Tables ---------- */
+  .table-wrap{overflow-x:auto;}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{
+    text-align:left; padding:10px 16px; font-size:11.5px; font-weight:500;
+    color:var(--ink-soft); border-bottom:1px solid var(--line); white-space:nowrap;
+  }
+  td{padding:10px 16px; border-bottom:1px solid var(--line); white-space:nowrap; color:var(--ink);}
+  tr:last-child td{border-bottom:none;}
+  td.num, th.num{text-align:right; font-family:var(--font-num);}
+  .pill{font-size:11px; padding:2px 9px; border-radius:20px; font-weight:500;}
+  .pill.clay{background:var(--clay-tint); color:var(--clay-deep);}
+  .pill.muted{background:var(--line); color:var(--ink-soft);}
+  .muted-dash{color:var(--ink-soft);}
+
+  .toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;}
+  .btn{
+    font-family:var(--font-ui); font-size:12.5px; font-weight:600; padding:8px 14px;
+    border-radius:7px; border:none; cursor:pointer;
+  }
+  .btn.primary{background:var(--clay); color:#fff;}
+  .btn.ghost{background:var(--paper-raised); border:1px solid var(--line); color:var(--ink);}
+  .btn.pdf{background:var(--char); color:var(--char-text);}
+  .btn.pdf:hover{background:var(--char-soft);}
+
+  /* ---------- Date filter bar ---------- */
+  .filter-bar{display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap; margin-bottom:16px;}
+  .filter-field{display:flex; flex-direction:column; gap:4px;}
+  .filter-field label{font-size:11px; color:var(--ink-soft);}
+  .filter-field input[type="date"]{font-family:var(--font-num); font-size:12.5px; padding:7px 9px; border-radius:7px; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink);}
+  .filter-field select{font-family:var(--font-num); font-size:12.5px; padding:7px 9px; border-radius:7px; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); min-width:140px;}
+
+  /* ---------- Row actions (edit/delete) ---------- */
+  .row-actions{display:flex; gap:6px; justify-content:flex-end;}
+  .icon-btn{background:none; border:1px solid var(--line); border-radius:6px; width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-soft); padding:0; flex:none;}
+  .icon-btn:hover{color:var(--ink); border-color:var(--ink-soft);}
+  .icon-btn.danger:hover{color:var(--clay); border-color:var(--clay);}
+  .icon-btn svg{width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+  .icon-btn.small{width:24px; height:24px;}
+  .icon-btn.small svg{width:12px; height:12px;}
+
+  /* ---------- Production view ---------- */
+  .calc-row{display:flex; align-items:center; gap:22px; padding:26px; border:1px solid var(--line); border-radius:10px; background:var(--paper-raised); margin-bottom:26px;}
+  .calc-block{text-align:center;}
+  .calc-block .label{font-size:11.5px; color:var(--ink-soft); margin-bottom:6px;}
+  .calc-block .value{font-family:var(--font-num); font-size:30px; font-weight:600;}
+  .calc-op{font-family:var(--font-num); font-size:20px; color:var(--ink-soft);}
+
+  /* ---------- Stock view ---------- */
+  .equation{display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:20px 24px; border:1px solid var(--line); border-radius:10px; background:var(--paper-raised); margin-bottom:26px; font-family:var(--font-num); font-size:15px;}
+  .equation .tag{font-size:11px; font-family:var(--font-ui); color:var(--ink-soft); display:block; margin-bottom:3px;}
+  .chart{display:flex; align-items:flex-end; gap:14px; height:120px; padding:18px 24px 6px 24px; border:1px solid var(--line); border-radius:10px; background:var(--paper-raised);}
+  .bar-col{display:flex; flex-direction:column; align-items:center; gap:8px; flex:1;}
+  .bar{width:100%; max-width:34px; background:var(--kiln); border-radius:4px 4px 0 0;}
+  .bar-day{font-size:11px; color:var(--ink-soft);}
+
+  /* ---------- Mode toggle ---------- */
+  .mode-toggle{
+    position:sticky; top:0; z-index:50; display:flex; justify-content:center; align-items:center; gap:8px;
+    padding:12px; background:var(--paper); border-bottom:1px solid var(--line);
+  }
+  .mode-toggle .hint{font-size:11.5px; color:var(--ink-soft); margin-right:6px;}
+  .mode-btn{
+    font-family:var(--font-ui); font-size:12.5px; font-weight:600; padding:8px 16px;
+    border-radius:20px; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink-soft); cursor:pointer;
+  }
+  .mode-btn.active{background:var(--char); color:var(--char-text); border-color:var(--char);}
+
+  /* ---------- Mobile phone-frame preview ---------- */
+  #mobile-view{display:none; justify-content:center; padding:50px 20px 70px 20px; background:var(--paper);}
+  .phone{
+    width:320px; height:660px; background:var(--char); border-radius:42px; padding:12px;
+    box-shadow:0 30px 60px rgba(0,0,0,.22); position:relative; flex:none;
+  }
+  .phone-screen{
+    background:var(--paper-raised); border-radius:32px; height:100%; overflow:hidden;
+    display:flex; flex-direction:column; position:relative;
+  }
+  .phone-notch{
+    position:absolute; top:10px; left:50%; transform:translateX(-50%);
+    width:84px; height:20px; background:var(--char); border-radius:12px; z-index:5;
+  }
+  .phone-statusbar{display:flex; justify-content:space-between; padding:16px 22px 2px 22px; font-family:var(--font-num); font-size:11px; color:var(--ink); flex:none;}
+  .phone-header{padding:6px 20px 10px 20px; font-weight:600; font-size:15px; flex:none;}
+  .phone-content{flex:1; overflow-y:auto; padding:2px 16px 12px 16px;}
+  .phone-tabbar{display:flex; border-top:1px solid var(--line); flex:none; padding:6px 4px 4px 4px;}
+  .tab-btn{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; border:none; background:none; color:var(--ink-soft); font-size:10px; padding:5px 0; font-family:var(--font-ui); cursor:pointer;}
+  .tab-btn.active{color:var(--clay);}
+  .phone-home{height:14px; display:flex; align-items:center; justify-content:center; flex:none;}
+  .phone-home span{width:120px; height:4px; background:var(--ink); opacity:.25; border-radius:3px; display:block;}
+
+  .m-view{display:none;}
+  .m-view.active{display:block; animation:rise .3s ease;}
+  .clr-clay{color:var(--clay);} .clr-kiln{color:var(--kiln);} .clr-sage{color:var(--sage);}
+
+  .m-greeting-date{font-size:11.5px; color:var(--ink-soft); font-family:var(--font-num);}
+  .m-greeting-title{font-size:17px; font-weight:600; margin:2px 0 14px 0;}
+  .m-stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;}
+  .m-stat-card{border:1px solid var(--line); border-radius:12px; padding:12px 14px; background:var(--paper-raised);}
+  .m-stat-label{font-size:11px; color:var(--ink-soft); margin-bottom:5px;}
+  .m-stat-value{font-family:var(--font-num); font-size:19px; font-weight:600;}
+  .m-section-title{font-size:12px; font-weight:600; color:var(--ink-soft); margin:18px 2px 8px 2px;}
+  .m-screen-head{display:flex; align-items:center; justify-content:space-between; margin:2px 0 14px 0;}
+  .m-screen-title{font-size:16px; font-weight:600;}
+  .m-view-only{font-size:10.5px; color:var(--clay-deep); background:var(--clay-tint); padding:3px 8px; border-radius:20px; font-weight:500;}
+  .m-list-row{display:flex; align-items:center; justify-content:space-between; padding:11px 2px; border-bottom:1px solid var(--line); gap:8px;}
+  .m-list-row:last-child{border-bottom:none;}
+  .m-row-text{min-width:0; flex:1;}
+  .m-row-title{font-size:13.5px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .m-row-sub{font-size:11.5px; color:var(--ink-soft); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .m-row-amount{font-family:var(--font-num); font-size:13.5px; font-weight:600; white-space:nowrap;}
+  .m-row-right{display:flex; align-items:center; gap:8px; flex:none;}
+  .m-row-actions{display:flex; gap:4px; flex:none;}
+  .m-stepper-card{border:1px solid var(--line); border-radius:14px; padding:20px; background:var(--paper-raised); margin-bottom:18px;}
+  .m-btn-primary{display:block; width:100%; margin-top:16px; padding:12px; border:none; border-radius:10px; background:var(--clay); color:#fff; font-family:var(--font-ui); font-weight:600; font-size:13.5px; cursor:pointer;}
+  .m-btn-secondary{display:block; width:100%; margin-top:10px; padding:10px; border:1px solid var(--line); border-radius:10px; background:var(--paper-raised); color:var(--ink); font-family:var(--font-ui); font-weight:600; font-size:12.5px; cursor:pointer;}
+
+  /* ---------- Ledger: party panels + drill-down ---------- */
+  .ledger-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:14px;}
+  .ledger-card{border:1px solid var(--line); border-radius:10px; padding:16px 18px; background:var(--paper-raised); cursor:pointer; text-align:left; appearance:none; -webkit-appearance:none; font-family:var(--font-ui);}
+  .ledger-card:hover{border-color:var(--clay);}
+  .ledger-card-name{font-weight:600; font-size:14px; margin-bottom:8px;}
+  .ledger-card-balance{font-family:var(--font-num); font-size:17px; font-weight:600;}
+  .ledger-card-sub{font-size:11.5px; color:var(--ink-soft); margin-top:4px;}
+  .ledger-back{display:inline-flex; align-items:center; gap:6px; margin-bottom:16px; cursor:pointer; font-size:13px; color:var(--ink-soft); background:none; border:none; font-family:var(--font-ui); padding:0;}
+  .ledger-back:hover{color:var(--ink);}
+  .ledger-detail-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;}
+  .ledger-detail-head h3{margin:0; font-size:16px;}
+  .ledger-detail-balance{font-family:var(--font-num); font-size:16px; font-weight:600;}
+  button.m-list-row{background:none; border:none; font:inherit; color:inherit; width:100%; cursor:pointer;}
+
+  /* ---------- Add-entry modals (shared across desktop and mobile) ---------- */
+  .modal-overlay{position:fixed; inset:0; background:rgba(20,16,12,0.5); display:none; align-items:center; justify-content:center; z-index:200; padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:var(--paper-raised); border-radius:14px; padding:22px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; box-shadow:0 30px 60px rgba(0,0,0,.3);}
+  .modal-box h3{margin:0 0 16px 0; font-size:16px;}
+  .entry-form-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:12px; margin-bottom:16px;}
+  .form-field{display:flex; flex-direction:column; gap:4px;}
+  .form-field label{font-size:11px; color:var(--ink-soft);}
+  .form-field input, .form-field select{font-family:var(--font-ui); font-size:13px; padding:8px 10px; border-radius:7px; border:1px solid var(--line); background:var(--paper); color:var(--ink); width:100%;}
+  .form-field input:disabled{background:var(--line); color:var(--ink-soft); cursor:not-allowed;}
+  .entry-form-actions{display:flex; gap:10px; justify-content:flex-end;}
+
+  /* ---------- Login / OTP ---------- */
+  #desktop-auth-overlay{position:absolute; inset:0; z-index:150; background:var(--paper); display:flex; align-items:center; justify-content:center;}
+  .auth-card{width:100%; max-width:380px; padding:20px;}
+  .auth-brand{text-align:center; margin-bottom:26px;}
+  .auth-brand .brand-mark{margin:0 auto 12px auto;}
+  .auth-brand .name{font-size:18px; font-weight:600;}
+  .auth-brand .sub{font-size:12.5px; color:var(--ink-soft); margin-top:2px;}
+  .auth-error{color:var(--clay); font-size:12px; min-height:16px; margin-bottom:8px;}
+  .auth-hint{margin-top:16px; padding:10px 12px; border:1px dashed var(--line); border-radius:8px; font-size:11.5px; color:var(--ink-soft); text-align:center;}
+  .otp-boxes{display:flex; gap:10px; justify-content:center; margin-bottom:14px;}
+  .otp-box{width:46px; height:54px; text-align:center; font-family:var(--font-num); font-size:22px; border:1px solid var(--line); border-radius:8px; background:var(--paper-raised); color:var(--ink);}
+  .otp-box:focus{border-color:var(--clay); outline:none;}
+  .otp-box.small{width:38px; height:46px; font-size:18px;}
+  .sidebar-logout{display:block; width:100%; margin-top:10px; padding:7px; border:1px solid var(--char-line); border-radius:7px; background:none; color:var(--char-text-soft); font-family:var(--font-ui); font-size:11.5px; cursor:pointer; text-align:center;}
+  .sidebar-logout:hover{color:var(--char-text); border-color:var(--char-text-soft);}
+  #mobile-auth-gate{flex:1; display:flex; flex-direction:column; justify-content:center; padding:24px 18px;}
+
+  @media (max-width:820px){
+    .sidebar{width:64px; padding:16px 8px;}
+    .brand-name, .brand-sub, .nav-item span.label{display:none;}
+    .nav-item{justify-content:center;}
+    .brand{justify-content:center; padding-bottom:16px;}
+    .cols{grid-template-columns:1fr;}
+    .topbar{padding:16px 18px;}
+    .content{padding:18px;}
+  }
+</style>
+</head>
+<body>
+
+<svg style="display:none">
+  <symbol id="ic-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><rect x="14" y="14" width="7" height="7" rx="1.2"/></symbol>
+  <symbol id="ic-sales" viewBox="0 0 24 24"><path d="M6 3h12v17l-2.5-1.5L13 20l-2.5-1.5L8 20l-2-1.5V3z"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/></symbol>
+  <symbol id="ic-cash" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 9.5h18"/><circle cx="17" cy="13.5" r="1.3"/></symbol>
+  <symbol id="ic-ledger" viewBox="0 0 24 24"><path d="M4 5c2-1 5-1 8 1 3-2 6-2 8-1v13c-2-1-5-1-8 1-3-2-6-2-8-1V5z"/><line x1="12" y1="6" x2="12" y2="18"/></symbol>
+  <symbol id="ic-factory" viewBox="0 0 24 24"><path d="M4 20V11l4 2.5V11l4 2.5V9l6-3v14"/><line x1="4" y1="20" x2="20" y2="20"/></symbol>
+  <symbol id="ic-stock" viewBox="0 0 24 24"><path d="M12 3l8 4.5-8 4.5-8-4.5L12 3z"/><path d="M4 12l8 4.5 8-4.5"/><path d="M4 16.5l8 4.5 8-4.5"/></symbol>
+  <symbol id="ic-raw" viewBox="0 0 24 24"><path d="M3 16l4-9h10l4 9"/><path d="M3 16h18v4H3z"/><line x1="9" y1="16" x2="9" y2="7"/><line x1="15" y1="16" x2="15" y2="7"/></symbol>
+  <symbol id="ic-report" viewBox="0 0 24 24"><line x1="5" y1="20" x2="5" y2="10"/><line x1="12" y1="20" x2="12" y2="5"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></symbol>
+  <symbol id="ic-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></symbol>
+  <symbol id="ic-expense" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="7" y1="12" x2="17" y2="12"/></symbol>
+  <symbol id="ic-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+  <symbol id="ic-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></symbol>
+</svg>
+
+<div class="mode-toggle">
+  <span class="hint">Preview:</span>
+  <button class="mode-btn active" id="toggle-desktop">🖥 Desktop</button>
+  <button class="mode-btn" id="toggle-mobile">📱 Mobile</button>
+</div>
+
+<div class="app" id="desktop-view">
+
+  <div id="desktop-auth-overlay">
+    <div class="auth-card">
+
+      <div id="desktop-login-screen">
+        <div class="auth-brand">
+          <div class="brand-mark">🧱</div>
+          <div class="name">Shivkrupa Enterprises</div>
+          <div class="sub">Sign in to continue</div>
+        </div>
+        <div class="form-field" style="margin-bottom:12px;"><label>ID</label><input type="text" id="desktop-login-id" placeholder="Enter your ID"></div>
+        <div class="form-field" style="margin-bottom:4px;"><label>Password</label><input type="password" id="desktop-login-password" placeholder="Enter your password"></div>
+        <div class="auth-error" id="desktop-login-error"></div>
+        <button class="btn primary" style="width:100%; padding:11px;" onclick="attemptLogin('desktop')">Sign In</button>
+        <div class="auth-hint">Demo preview — ID: <strong>admin</strong> · Password: <strong>admin123</strong></div>
+      </div>
+
+      <div id="desktop-otp-screen" style="display:none;">
+        <div class="auth-brand">
+          <div class="name">Verify It's You</div>
+          <div class="sub">Code sent to +91 98XXX XXXXX</div>
+        </div>
+        <div class="otp-boxes" id="desktop-otp-boxes">
+          <input type="text" maxlength="1" inputmode="numeric" class="otp-box">
+          <input type="text" maxlength="1" inputmode="numeric" class="otp-box">
+          <input type="text" maxlength="1" inputmode="numeric" class="otp-box">
+          <input type="text" maxlength="1" inputmode="numeric" class="otp-box">
+        </div>
+        <div class="auth-error" id="desktop-otp-error" style="text-align:center;"></div>
+        <button class="btn primary" style="width:100%; padding:11px;" onclick="attemptVerifyOtp('desktop')">Verify & Continue</button>
+        <button class="btn ghost" style="width:100%; padding:9px; margin-top:8px;" onclick="resendOtp('desktop')">Resend Code</button>
+        <div class="auth-hint" id="desktop-otp-hint"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">🧱</div>
+      <div>
+        <div class="brand-name">Shivkrupa Enterprises</div>
+        <div class="brand-sub">App preview</div>
+      </div>
+    </div>
+    <nav>
+      <button class="nav-item active" data-view="dashboard"><svg class="icon"><use href="#ic-grid"/></svg><span class="label">Dashboard</span></button>
+      <button class="nav-item" data-view="sales"><svg class="icon"><use href="#ic-sales"/></svg><span class="label">Sales Book</span></button>
+      <button class="nav-item" data-view="cash"><svg class="icon"><use href="#ic-cash"/></svg><span class="label">Cash Book</span></button>
+      <button class="nav-item" data-view="expenses"><svg class="icon"><use href="#ic-expense"/></svg><span class="label">Expenses</span></button>
+      <button class="nav-item" data-view="ledger"><svg class="icon"><use href="#ic-ledger"/></svg><span class="label">Ledger</span></button>
+      <button class="nav-item" data-view="production"><svg class="icon"><use href="#ic-factory"/></svg><span class="label">Production</span></button>
+      <button class="nav-item" data-view="raw-materials"><svg class="icon"><use href="#ic-raw"/></svg><span class="label">Raw Materials</span></button>
+      <button class="nav-item" data-view="stock"><svg class="icon"><use href="#ic-stock"/></svg><span class="label">Stock</span></button>
+      <button class="nav-item" data-view="reports"><svg class="icon"><use href="#ic-report"/></svg><span class="label">Reports</span></button>
+    </nav>
+    <div class="sidebar-foot">Piclush Media Agency<br>Design preview — layout only<button class="sidebar-logout" onclick="lockApp()">Logout</button></div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <h1 id="view-heading">Dashboard</h1>
+      <div class="topbar-right">
+        <span class="sample-tag">Sample data — illustrative only</span>
+        <span class="date">Wed, 16 Sep 2026</span>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <section class="view active" id="dashboard">
+        <div class="stat-strip">
+          <div class="stat"><div class="stat-label">Bricks Produced Today</div><div class="stat-value kiln" id="dash-bricks-produced">0</div></div>
+          <div class="stat"><div class="stat-label">Bricks Sold Today</div><div class="stat-value clay" id="dash-bricks-sold">0</div></div>
+          <div class="stat"><div class="stat-label">Cash Received Today</div><div class="stat-value sage" id="dash-cash-received">₹0</div></div>
+          <div class="stat"><div class="stat-label">Current Stock</div><div class="stat-value" id="dash-current-stock">0</div><div class="stat-sub">bricks, as of today</div></div>
+          <div class="stat"><div class="stat-label">Expenses Today</div><div class="stat-value" id="dash-expenses" style="color:var(--clay-deep)">₹0</div></div>
+        </div>
+        <div class="cols">
+          <div class="panel">
+            <div class="panel-head">Recent Sales</div>
+            <div class="table-wrap"><table>
+              <tr><th>Date</th><th>Party</th><th class="num">Qty</th><th class="num">Amount</th></tr>
+              <tbody id="dash-recent-sales"></tbody>
+            </table></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">Recent Production</div>
+            <div class="table-wrap"><table>
+              <tr><th>Date</th><th class="num">Pallets</th><th class="num">Bricks</th></tr>
+              <tbody id="dash-recent-production"></tbody>
+            </table></div>
+          </div>
+        </div>
+        <div style="margin-top:20px;"><button class="btn pdf" onclick="downloadDashboardPDF()">⬇ Download PDF</button></div>
+      </section>
+
+      <!-- SALES BOOK -->
+      <section class="view" id="sales">
+        <p class="view-desc">Date-wise sales register, matching the Excel format you already use.</p>
+        <div class="filter-bar">
+          <div class="filter-field"><label>From</label><input type="date" id="sales-from" onchange="renderSalesTable()"></div>
+          <div class="filter-field"><label>To</label><input type="date" id="sales-to" onchange="renderSalesTable()"></div>
+          <div class="filter-field"><label>Party</label><select id="sales-party" onchange="renderSalesTable()"><option value="">All Parties</option></select></div>
+          <div class="filter-field"><label>Brick Type</label><select id="sales-brick-type" onchange="renderSalesTable()"><option value="">Both</option></select></div>
+          <button class="btn ghost" onclick="renderSalesTable()">Apply</button>
+          <button class="btn pdf" onclick="downloadSalesPDF()">⬇ Download PDF</button>
+          <button class="btn primary" style="margin-left:auto;" onclick="openAddModal('sales')">+ New Sale Entry</button>
+        </div>
+        <p class="view-desc" id="sales-summary"></p>
+        <div class="panel"><div class="table-wrap"><table>
+          <tr><th>Date</th><th>Sr.No</th><th>Party Name</th><th>Address</th><th>Mobile</th><th>Brick Type</th><th class="num">Qty</th><th class="num">Total Value</th><th>Carting By</th><th class="num">Carting Value</th><th></th></tr>
+          <tbody id="sales-rows"></tbody>
+        </table></div></div>
+      </section>
+
+      <!-- CASH BOOK -->
+      <section class="view" id="cash">
+        <p class="view-desc">Daily cash received, party-wise — feeds straight into the Ledger.</p>
+        <div class="filter-bar">
+          <div class="filter-field"><label>From</label><input type="date" id="cash-from" onchange="renderCashTable()"></div>
+          <div class="filter-field"><label>To</label><input type="date" id="cash-to" onchange="renderCashTable()"></div>
+          <div class="filter-field"><label>Party</label><select id="cash-party" onchange="renderCashTable()"><option value="">All Parties</option></select></div>
+          <div class="filter-field"><label>Mode</label><select id="cash-mode" onchange="renderCashTable()"><option value="">All Modes</option></select></div>
+          <button class="btn ghost" onclick="renderCashTable()">Apply</button>
+          <button class="btn pdf" onclick="downloadCashPDF()">⬇ Download PDF</button>
+          <button class="btn primary" style="margin-left:auto;" onclick="openAddModal('cash')">+ New Entry</button>
+        </div>
+        <p class="view-desc" id="cash-summary"></p>
+        <div class="panel"><div class="table-wrap"><table>
+          <tr><th>Date</th><th>Name of Client</th><th>Address</th><th>Mobile</th><th class="num">Amount Received</th><th>Mode</th><th></th></tr>
+          <tbody id="cash-rows"></tbody>
+        </table></div></div>
+      </section>
+
+      <!-- EXPENSES BOOK -->
+      <section class="view" id="expenses">
+        <p class="view-desc">Labor wages and vehicle fuel — tracked separately from customer cash receipts.</p>
+        <div class="filter-bar">
+          <div class="filter-field"><label>From</label><input type="date" id="expenses-from" onchange="renderExpensesTable()"></div>
+          <div class="filter-field"><label>To</label><input type="date" id="expenses-to" onchange="renderExpensesTable()"></div>
+          <div class="filter-field"><label>Particulars</label><select id="expenses-particulars" onchange="renderExpensesTable()"><option value="">All</option></select></div>
+          <button class="btn ghost" onclick="renderExpensesTable()">Apply</button>
+          <button class="btn pdf" onclick="downloadExpensesPDF()">⬇ Download PDF</button>
+          <button class="btn primary" style="margin-left:auto;" onclick="openAddModal('expenses')">+ New Expense Entry</button>
+        </div>
+        <div class="panel"><div class="table-wrap"><table>
+          <tr><th>Date</th><th>Sr.No</th><th>Particulars</th><th>Details</th><th class="num">Amount</th><th></th></tr>
+          <tbody id="expenses-rows"></tbody>
+        </table></div></div>
+      </section>
+
+      <!-- LEDGER -->
+      <section class="view" id="ledger">
+        <p class="view-desc">Click a party to see their full running account — debit, credit, and balance, entry by entry.</p>
+
+        <div id="ledger-list">
+          <div class="filter-bar">
+            <div class="filter-field"><label>From</label><input type="date" id="ledger-from" onchange="applyLedgerFilter()"></div>
+            <div class="filter-field"><label>To</label><input type="date" id="ledger-to" onchange="applyLedgerFilter()"></div>
+            <button class="btn ghost" onclick="applyLedgerFilter()">Apply</button>
+            <button class="btn pdf" onclick="downloadLedgerSummaryPDF()">⬇ Download Summary PDF</button>
+          </div>
+          <div class="ledger-grid" id="ledger-grid"><!-- rendered by script --></div>
+        </div>
+
+        <div id="ledger-detail" style="display:none;">
+          <button class="ledger-back" id="ledger-back-btn">← All Parties</button>
+          <div class="ledger-detail-head">
+            <h3 id="ledger-detail-name"></h3>
+            <div>Balance: <span class="ledger-detail-balance" id="ledger-detail-balance"></span></div>
+          </div>
+          <p class="view-desc" id="ledger-detail-range"></p>
+          <div class="panel"><div class="table-wrap"><table>
+            <tr><th>Date</th><th>Particulars</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr>
+            <tbody id="ledger-detail-rows"></tbody>
+          </table></div></div>
+          <div style="margin-top:14px;"><button class="btn pdf" onclick="downloadLedgerStatementPDF(currentLedgerParty)">⬇ Download Statement PDF</button></div>
+        </div>
+      </section>
+
+      <!-- PRODUCTION -->
+      <section class="view" id="production">
+        <p class="view-desc">Factory staff log pallets — bricks are calculated automatically, using the right rate for each brick size.</p>
+        <div class="calc-row">
+          <div class="calc-block"><div class="label">4 inch brick</div><div class="value" style="font-size:20px;">1 pallet = 100 bricks</div></div>
+          <div class="calc-block"><div class="label">6 inch brick</div><div class="value" style="font-size:20px; color:var(--kiln);">1 pallet = 66 bricks</div></div>
+        </div>
+        <div class="filter-bar">
+          <div class="filter-field"><label>From</label><input type="date" id="production-from" onchange="renderProductionTable()"></div>
+          <div class="filter-field"><label>To</label><input type="date" id="production-to" onchange="renderProductionTable()"></div>
+          <div class="filter-field"><label>Brick Type</label><select id="production-brick-type" onchange="renderProductionTable()"><option value="">Both</option></select></div>
+          <button class="btn ghost" onclick="renderProductionTable()">Apply</button>
+          <button class="btn pdf" onclick="downloadProductionPDF()">⬇ Download PDF</button>
+          <button class="btn primary" style="margin-left:auto;" onclick="openAddModal('production')">+ New Production Entry</button>
+        </div>
+        <div class="panel"><div class="table-wrap"><table>
+          <tr><th>Date</th><th>Brick Type</th><th class="num">Pallets</th><th class="num">Bricks Produced</th><th>Entered By</th><th></th></tr>
+          <tbody id="production-rows"></tbody>
+        </table></div></div>
+      </section>
+
+      <!-- RAW MATERIALS -->
+      <section class="view" id="raw-materials">
+        <p class="view-desc">Materials arriving at the factory — most logged truck-wise, cement specifically bag-wise.</p>
+        <div class="filter-bar">
+          <div class="filter-field"><label>From</label><input type="date" id="raw-from" onchange="renderRawMaterialsTable()"></div>
+          <div class="filter-field"><label>To</label><input type="date" id="raw-to" onchange="renderRawMaterialsTable()"></div>
+          <div class="filter-field"><label>Material</label><select id="raw-material-filter" onchange="renderRawMaterialsTable()"><option value="">All Materials</option></select></div>
+          <button class="btn ghost" onclick="renderRawMaterialsTable()">Apply</button>
+          <button class="btn pdf" onclick="downloadRawMaterialsPDF()">⬇ Download PDF</button>
+          <button class="btn primary" style="margin-left:auto;" onclick="openAddModal('raw')">+ New Raw Material Entry</button>
+        </div>
+        <div class="panel"><div class="table-wrap"><table>
+          <tr><th>Date</th><th>Sr.No</th><th>Material</th><th class="num">Quantity</th><th>Unit</th><th class="num">Cost</th><th>Supplied By</th><th></th></tr>
+          <tbody id="raw-rows"></tbody>
+        </table></div></div>
+      </section>
+
+      <!-- STOCK -->
+      <section class="view" id="stock">
+        <p class="view-desc">Updates automatically the moment a sale or production entry is made — tracked separately per brick size, since they're different products.</p>
+        <div class="cols" id="stock-current-cols" style="margin-bottom:22px;">
+          <div class="panel" style="padding:18px;">
+            <div class="stat-label">4 inch — Current Stock</div>
+            <div class="stat-value" id="stock-current-4inch" style="font-size:26px; color:var(--clay);">0</div>
+            <div class="stat-sub" id="stock-sub-4inch">Produced 0 &minus; Sold 0</div>
+          </div>
+          <div class="panel" style="padding:18px;">
+            <div class="stat-label">6 inch — Current Stock</div>
+            <div class="stat-value" id="stock-current-6inch" style="font-size:26px; color:var(--kiln);">0</div>
+            <div class="stat-sub" id="stock-sub-6inch">Produced 0 &minus; Sold 0</div>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="filter-field"><label>From</label><input type="date" id="stock-from" onchange="renderStockChart()"></div>
+          <div class="filter-field"><label>To</label><input type="date" id="stock-to" onchange="renderStockChart()"></div>
+          <div class="filter-field"><label>Trend for</label><select id="stock-brick-type" onchange="renderStockChart()"><option value="4 inch">4 inch</option><option value="6 inch">6 inch</option></select></div>
+          <button class="btn ghost" onclick="renderStockChart()">Apply</button>
+          <button class="btn pdf" onclick="downloadStockPDF()">⬇ Download PDF</button>
+        </div>
+        <div class="panel-head" style="border:1px solid var(--line); border-bottom:none; border-radius:10px 10px 0 0; background:var(--paper-raised)">Stock Trend</div>
+        <div class="chart" id="stock-chart" style="border-radius:0 0 10px 10px; border-top:none;"></div>
+      </section>
+
+      <!-- REPORTS -->
+      <section class="view" id="reports">
+        <p class="view-desc" id="rep-period">Monthly rollup</p>
+        <div class="stat-strip">
+          <div class="stat"><div class="stat-label">Sales This Month</div><div class="stat-value clay" id="rep-sales">₹0</div></div>
+          <div class="stat"><div class="stat-label">Bricks Produced</div><div class="stat-value kiln" id="rep-produced">0</div></div>
+          <div class="stat"><div class="stat-label">Bricks Sold</div><div class="stat-value" id="rep-sold">0</div></div>
+          <div class="stat"><div class="stat-label">Cash Received</div><div class="stat-value sage" id="rep-cash">₹0</div></div>
+          <div class="stat"><div class="stat-label">Outstanding (Credit)</div><div class="stat-value" id="rep-outstanding">₹0</div></div>
+          <div class="stat"><div class="stat-label">Labor & Fuel Expenses</div><div class="stat-value" id="rep-expenses" style="color:var(--clay-deep)">₹0</div></div>
+        </div>
+        <div style="margin-top:20px;"><button class="btn pdf" onclick="downloadReportsPDF()">⬇ Download PDF</button></div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div id="mobile-view">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="phone-notch"></div>
+      <div class="phone-statusbar"><span>9:41</span><span>●●● 5G 100%</span></div>
+      <div id="mobile-auth-gate">
+
+        <div id="mobile-login-screen">
+          <div class="auth-brand">
+            <div class="brand-mark" style="width:26px; height:26px; font-size:14px;">🧱</div>
+            <div class="name" style="font-size:16px;">Shivkrupa Enterprises</div>
+            <div class="sub">Sign in to continue</div>
+          </div>
+          <div class="form-field" style="margin-bottom:10px;"><label>ID</label><input type="text" id="mobile-login-id" placeholder="Enter your ID"></div>
+          <div class="form-field" style="margin-bottom:4px;"><label>Password</label><input type="password" id="mobile-login-password" placeholder="Enter your password"></div>
+          <div class="auth-error" id="mobile-login-error"></div>
+          <button class="m-btn-primary" style="margin-top:2px;" onclick="attemptLogin('mobile')">Sign In</button>
+          <div class="auth-hint">Demo preview — ID: <strong>admin</strong> · Password: <strong>admin123</strong></div>
+        </div>
+
+        <div id="mobile-otp-screen" style="display:none;">
+          <div class="auth-brand">
+            <div class="name" style="font-size:16px;">Verify It's You</div>
+            <div class="sub">Code sent to +91 98XXX XXXXX</div>
+          </div>
+          <div class="otp-boxes" id="mobile-otp-boxes">
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-box small">
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-box small">
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-box small">
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-box small">
+          </div>
+          <div class="auth-error" id="mobile-otp-error" style="text-align:center;"></div>
+          <button class="m-btn-primary" onclick="attemptVerifyOtp('mobile')">Verify & Continue</button>
+          <button class="m-btn-secondary" onclick="resendOtp('mobile')">Resend Code</button>
+          <div class="auth-hint" id="mobile-otp-hint"></div>
+        </div>
+
+      </div>
+
+      <div id="mobile-app-shell" style="display:none; flex-direction:column; flex:1; min-height:0;">
+      <div class="phone-header">Shivkrupa Enterprises</div>
+      <div class="phone-content">
+
+        <div class="m-view active" id="m-dashboard">
+          <div class="m-greeting-date">Wed, 16 Sep 2026</div>
+          <div class="m-greeting-title">Today's Snapshot</div>
+          <div class="m-stat-grid">
+            <div class="m-stat-card"><div class="m-stat-label">Bricks Produced</div><div class="m-stat-value clr-kiln">500</div></div>
+            <div class="m-stat-card"><div class="m-stat-label">Bricks Sold</div><div class="m-stat-value clr-clay">3,500</div></div>
+            <div class="m-stat-card"><div class="m-stat-label">Cash Received</div><div class="m-stat-value clr-sage">₹28,000</div></div>
+            <div class="m-stat-card"><div class="m-stat-label">Current Stock</div><div class="m-stat-value">9,000</div></div>
+          </div>
+          <div class="m-section-title">Recent Sales</div>
+          <div class="m-list-row"><div><div class="m-row-title">Shree Balaji Construction</div><div class="m-row-sub">16 Sep · 2,000 bricks</div></div><div class="m-row-amount">₹16,000</div></div>
+          <div class="m-list-row"><div><div class="m-row-title">Om Traders</div><div class="m-row-sub">16 Sep · 1,500 bricks</div></div><div class="m-row-amount">₹12,000</div></div>
+          <div class="m-list-row"><div><div class="m-row-title">Patil Builders</div><div class="m-row-sub">15 Sep · 3,000 bricks</div></div><div class="m-row-amount">₹24,500</div></div>
+          <div class="m-section-title">Recent Production</div>
+          <div class="m-list-row"><div><div class="m-row-title">16 Sep</div><div class="m-row-sub">5 pallets</div></div><div class="m-row-amount clr-kiln">500 bricks</div></div>
+          <div class="m-list-row"><div><div class="m-row-title">15 Sep</div><div class="m-row-sub">6 pallets</div></div><div class="m-row-amount clr-kiln">600 bricks</div></div>
+          <button class="m-btn-secondary" onclick="downloadDashboardPDF()">⬇ Download PDF</button>
+        </div>
+
+        <div class="m-view" id="m-sales">
+          <div class="m-screen-head"><div class="m-screen-title">Sales Book</div></div>
+          <div id="m-sales-rows"></div>
+          <button class="m-btn-primary" onclick="openAddModal('sales')">+ New Sale Entry</button>
+          <button class="m-btn-secondary" onclick="downloadSalesPDF()">⬇ Download PDF</button>
+        </div>
+
+        <div class="m-view" id="m-cash">
+          <div class="m-screen-head"><div class="m-screen-title">Cash Book</div></div>
+          <div id="m-cash-rows"></div>
+          <button class="m-btn-primary" onclick="openAddModal('cash')">+ New Entry</button>
+          <button class="m-btn-secondary" onclick="downloadCashPDF()">⬇ Download PDF</button>
+        </div>
+
+        <div class="m-view" id="m-production">
+          <div class="m-screen-head"><div class="m-screen-title">Production</div></div>
+          <div class="m-stepper-card" style="text-align:center;">
+            <div class="m-row-sub">4 inch: 1 pallet = 100 bricks &nbsp;·&nbsp; 6 inch: 1 pallet = 66 bricks</div>
+          </div>
+          <button class="m-btn-primary" onclick="openAddModal('production')">+ New Production Entry</button>
+          <div class="m-section-title">Production Log</div>
+          <div id="m-production-rows"></div>
+          <button class="m-btn-secondary" onclick="downloadProductionPDF()">⬇ Download PDF</button>
+        </div>
+
+        <div class="m-view" id="m-expenses">
+          <div class="m-screen-head"><div class="m-screen-title">Expenses Book</div></div>
+          <div id="m-expenses-rows"></div>
+          <button class="m-btn-primary" onclick="openAddModal('expenses')">+ New Expense Entry</button>
+          <button class="m-btn-secondary" onclick="downloadExpensesPDF()">⬇ Download PDF</button>
+        </div>
+
+        <div class="m-view" id="m-more">
+          <div class="m-section-title">Raw Materials</div>
+          <div id="m-raw-rows"></div>
+          <button class="m-btn-primary" onclick="openAddModal('raw')">+ New Raw Material Entry</button>
+          <button class="m-btn-secondary" onclick="downloadRawMaterialsPDF()">⬇ Download PDF</button>
+
+          <div class="m-section-title">Ledger</div>
+          <div id="m-more-ledger-rows"></div>
+          <button class="m-btn-secondary" onclick="downloadLedgerSummaryPDF()">⬇ Download Ledger Summary</button>
+
+          <div class="m-section-title">Stock</div>
+          <div class="m-stepper-card" style="text-align:center;">
+            <div class="stat-label">4 inch</div>
+            <div class="m-stat-value" id="m-more-stock-4inch" style="font-size:20px;">0 bricks</div>
+            <div class="m-row-sub" id="m-more-stock-sub-4inch"></div>
+            <div style="height:10px;"></div>
+            <div class="stat-label">6 inch</div>
+            <div class="m-stat-value" id="m-more-stock-6inch" style="font-size:20px;">0 bricks</div>
+            <div class="m-row-sub" id="m-more-stock-sub-6inch"></div>
+          </div>
+          <button class="m-btn-secondary" onclick="downloadStockPDF()">⬇ Download Stock Report</button>
+
+          <div class="m-section-title" id="m-more-rep-period">Reports</div>
+          <div class="m-list-row"><div class="m-row-title">Sales this month</div><div class="m-row-amount clr-clay" id="m-more-sales-month">₹0</div></div>
+          <div class="m-list-row"><div class="m-row-title">Cash received</div><div class="m-row-amount clr-sage" id="m-more-cash-month">₹0</div></div>
+          <div class="m-list-row"><div class="m-row-title">Outstanding credit</div><div class="m-row-amount" id="m-more-outstanding">₹0</div></div>
+          <div class="m-list-row"><div class="m-row-title">Raw material cost</div><div class="m-row-amount" id="m-more-raw-cost">₹0</div></div>
+          <button class="m-btn-secondary" onclick="downloadReportsPDF()">⬇ Download Monthly Report</button>
+          <button class="m-btn-secondary" onclick="lockApp()" style="margin-top:18px;">Logout</button>
+        </div>
+
+        <div class="m-view" id="m-ledger-detail">
+          <button class="ledger-back" id="m-ledger-back-btn">← Ledger</button>
+          <div class="m-screen-head">
+            <div class="m-screen-title" id="m-ledger-detail-name"></div>
+            <div class="m-row-amount" id="m-ledger-detail-balance"></div>
+          </div>
+          <div id="m-ledger-detail-rows"></div>
+          <button class="m-btn-secondary" onclick="downloadLedgerStatementPDF(currentLedgerParty)">⬇ Download Statement PDF</button>
+        </div>
+
+      </div>
+      <div class="phone-tabbar">
+        <button class="tab-btn active" data-mview="m-dashboard"><svg class="icon"><use href="#ic-grid"/></svg><span>Home</span></button>
+        <button class="tab-btn" data-mview="m-sales"><svg class="icon"><use href="#ic-sales"/></svg><span>Sales</span></button>
+        <button class="tab-btn" data-mview="m-production"><svg class="icon"><use href="#ic-factory"/></svg><span>Production</span></button>
+        <button class="tab-btn" data-mview="m-cash"><svg class="icon"><use href="#ic-cash"/></svg><span>Cash</span></button>
+        <button class="tab-btn" data-mview="m-expenses"><svg class="icon"><use href="#ic-expense"/></svg><span>Expenses</span></button>
+        <button class="tab-btn" data-mview="m-more"><svg class="icon"><use href="#ic-more"/></svg><span>More</span></button>
+      </div>
+      </div>
+      <div class="phone-home"><span></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sales-modal">
+  <div class="modal-box">
+    <h3 id="sales-modal-title">New Sale Entry</h3>
+    <div class="entry-form-grid">
+      <div class="form-field"><label>Date</label><input type="date" id="sales-form-date"></div>
+      <div class="form-field"><label>Party Name</label><input type="text" id="sales-form-party" list="party-directory-list" oninput="onPartyPicked('sales')" placeholder="Start typing..."></div>
+      <div class="form-field"><label>Address</label><input type="text" id="sales-form-address"></div>
+      <div class="form-field"><label>Mobile</label><input type="text" id="sales-form-mobile"></div>
+      <div class="form-field"><label>Brick Type</label><select id="sales-form-brick-type"><option value="4 inch">4 inch</option><option value="6 inch">6 inch</option></select></div>
+      <div class="form-field"><label>Quantity (bricks)</label><input type="number" id="sales-form-qty"></div>
+      <div class="form-field"><label>Total Value (Rs.)</label><input type="number" id="sales-form-value"></div>
+      <div class="form-field"><label>Carting By</label><select id="sales-form-cartby"><option value="Party">Party</option><option value="Company">Company</option></select></div>
+      <div class="form-field"><label>Carting Value (Rs.)</label><input type="number" id="sales-form-cartval" value="0"></div>
+    </div>
+    <div class="entry-form-actions">
+      <button class="btn ghost" onclick="closeModal('sales')">Cancel</button>
+      <button class="btn primary" onclick="submitSalesEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cash-modal">
+  <div class="modal-box">
+    <h3 id="cash-modal-title">New Cash Book Entry</h3>
+    <div class="entry-form-grid">
+      <div class="form-field"><label>Date</label><input type="date" id="cash-form-date"></div>
+      <div class="form-field"><label>Name of Client</label><input type="text" id="cash-form-party" list="party-directory-list" oninput="onPartyPicked('cash')" placeholder="Start typing..."></div>
+      <div class="form-field"><label>Address</label><input type="text" id="cash-form-address"></div>
+      <div class="form-field"><label>Mobile</label><input type="text" id="cash-form-mobile"></div>
+      <div class="form-field"><label>Amount Received (Rs.)</label><input type="number" id="cash-form-amount"></div>
+      <div class="form-field"><label>Mode of Payment</label><input type="text" id="cash-form-mode" list="payment-mode-list" placeholder="Cash, UPI, ..."></div>
+    </div>
+    <div class="entry-form-actions">
+      <button class="btn ghost" onclick="closeModal('cash')">Cancel</button>
+      <button class="btn primary" onclick="submitCashEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="expenses-modal">
+  <div class="modal-box">
+    <h3 id="expenses-modal-title">New Expense Entry</h3>
+    <div class="entry-form-grid">
+      <div class="form-field"><label>Date</label><input type="date" id="expenses-form-date"></div>
+      <div class="form-field"><label>Particulars</label><input type="text" id="expenses-form-particulars" list="expense-particulars-list" placeholder="Labor Wages, Petrol, Diesel..."></div>
+      <div class="form-field"><label>Details</label><input type="text" id="expenses-form-details" list="expense-details-list" placeholder="Labourer name or vehicle no."></div>
+      <div class="form-field"><label>Amount (Rs.)</label><input type="number" id="expenses-form-amount"></div>
+    </div>
+    <div class="entry-form-actions">
+      <button class="btn ghost" onclick="closeModal('expenses')">Cancel</button>
+      <button class="btn primary" onclick="submitExpenseEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="production-modal">
+  <div class="modal-box">
+    <h3 id="production-modal-title">New Production Entry</h3>
+    <div class="entry-form-grid">
+      <div class="form-field"><label>Date</label><input type="date" id="production-form-date"></div>
+      <div class="form-field"><label>Brick Type</label><select id="production-form-brick-type" onchange="updateProductionFormBricks()"><option value="4 inch">4 inch</option><option value="6 inch">6 inch</option></select></div>
+      <div class="form-field"><label>Pallets Produced</label><input type="number" id="production-form-pallets" oninput="updateProductionFormBricks()"></div>
+      <div class="form-field"><label>Bricks Produced</label><input type="text" id="production-form-bricks" disabled></div>
+      <div class="form-field"><label>Entered By</label><input type="text" id="production-form-by" placeholder="e.g. Ramesh (Supervisor)"></div>
+    </div>
+    <div class="entry-form-actions">
+      <button class="btn ghost" onclick="closeModal('production')">Cancel</button>
+      <button class="btn primary" onclick="submitProductionEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="raw-modal">
+  <div class="modal-box">
+    <h3 id="raw-modal-title">New Raw Material Entry</h3>
+    <div class="entry-form-grid">
+      <div class="form-field"><label>Date</label><input type="date" id="raw-form-date"></div>
+      <div class="form-field"><label>Material</label><input type="text" id="raw-form-material" list="raw-material-list" placeholder="Cement, Sand, Coal..."></div>
+      <div class="form-field"><label>Quantity</label><input type="number" id="raw-form-quantity"></div>
+      <div class="form-field"><label>Unit</label><input type="text" id="raw-form-unit" list="raw-unit-list" placeholder="Truck, Bag..."></div>
+      <div class="form-field"><label>Cost (Rs.)</label><input type="number" id="raw-form-cost"></div>
+      <div class="form-field"><label>Supplied By</label><input type="text" id="raw-form-supplier" list="raw-supplier-list" placeholder="Supplier name"></div>
+    </div>
+    <div class="entry-form-actions">
+      <button class="btn ghost" onclick="closeModal('raw')">Cancel</button>
+      <button class="btn primary" onclick="submitRawMaterialEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<datalist id="party-directory-list"></datalist>
+<datalist id="payment-mode-list"></datalist>
+<datalist id="expense-particulars-list"></datalist>
+<datalist id="expense-details-list"></datalist>
+<datalist id="raw-material-list"></datalist>
+<datalist id="raw-unit-list"></datalist>
+<datalist id="raw-supplier-list"></datalist>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  // =========================================================================
+  // CONFIG -- point this at wherever the backend is actually running.
+  // Local dev: http://localhost:8000 (uvicorn's default).
+  // After you deploy the backend to a VPS, change this to that server's URL.
+  // =========================================================================
+  const API_BASE = 'http://localhost:8000';
+
+  // ---------- Shared display helpers ----------
+  function shortDate(iso){
+    var d = new Date(iso + 'T00:00:00');
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return d.getDate() + ' ' + months[d.getMonth()];
+  }
+  function fmtDate(iso){ return shortDate(iso) + ' ' + String(new Date(iso + 'T00:00:00').getFullYear()).slice(2); }
+  function todayIso(){ return new Date().toISOString().slice(0,10); }
+  function firstOfMonthIso(){ var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-01'; }
+  function formatINR(n){ return '\u20b9' + Number(n).toLocaleString('en-IN'); }
+  function formatINR_PDF(n){ return 'Rs. ' + Number(n).toLocaleString('en-IN'); }
+
+  // ---------- API client ----------
+  let accessToken = null;
+
+  async function apiRequest(method, path, body){
+    var headers = {'Content-Type': 'application/json'};
+    if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+    var res;
+    try {
+      res = await fetch(API_BASE + path, {method: method, headers: headers, body: body ? JSON.stringify(body) : undefined});
+    } catch (networkErr) {
+      throw new Error('Could not reach the server at ' + API_BASE + '. Is it running? (See README.)');
+    }
+    if (res.status === 204) return null;
+    var data = null;
+    try { data = await res.json(); } catch(e) { /* empty body */ }
+    if (!res.ok) {
+      var detail = data && data.detail ? data.detail : ('Request failed (' + res.status + ')');
+      throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+    }
+    return data;
+  }
+
+  function qs(params){
+    var parts = [];
+    Object.keys(params).forEach(function(k){
+      if (params[k] !== undefined && params[k] !== null && params[k] !== '') {
+        parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(params[k]));
+      }
+    });
+    return parts.length ? ('?' + parts.join('&')) : '';
+  }
+
+  function distinctFilterOptions(list, allLabel){
+    return '<option value="">' + allLabel + '</option>' + list.map(function(v){ return '<option value="' + v + '">' + v + '</option>'; }).join('');
+  }
+
+  // =========================================================================
+  // AUTH + OTP -- real calls to /auth/login and /auth/verify-otp
+  // =========================================================================
+  var pendingOtpToken = {desktop: null, mobile: null};
+
+  async function attemptLogin(context){
+    var id = document.getElementById(context + '-login-id').value.trim();
+    var pass = document.getElementById(context + '-login-password').value;
+    var errorEl = document.getElementById(context + '-login-error');
+    errorEl.textContent = '';
+    try {
+      var data = await apiRequest('POST', '/auth/login', {username: id, password: pass});
+      pendingOtpToken[context] = data.otp_token;
+      showOtpScreen(context);
+    } catch (e) {
+      errorEl.textContent = e.message;
+    }
+  }
+
+  function showOtpScreen(context){
+    document.getElementById(context + '-login-screen').style.display = 'none';
+    document.getElementById(context + '-otp-screen').style.display = 'block';
+    document.getElementById(context + '-otp-hint').textContent =
+      'A code was sent to the registered mobile number. Testing locally? ' +
+      'Check the terminal window running uvicorn -- the code is printed there ' +
+      'until a real SMS provider is connected (see README).';
+    clearOtpBoxes(context);
+    var firstBox = document.querySelector('#' + context + '-otp-boxes .otp-box');
+    if (firstBox) firstBox.focus();
+  }
+
+  function getOtpValue(context){
+    return Array.from(document.querySelectorAll('#' + context + '-otp-boxes .otp-box')).map(function(b){ return b.value; }).join('');
+  }
+  function clearOtpBoxes(context){
+    document.querySelectorAll('#' + context + '-otp-boxes .otp-box').forEach(function(b){ b.value = ''; });
+  }
+  function setupOtpBoxes(context){
+    var boxes = document.querySelectorAll('#' + context + '-otp-boxes .otp-box');
+    boxes.forEach(function(box, i){
+      box.addEventListener('input', function(){
+        box.value = box.value.replace(/[^0-9]/g, '').slice(0, 1);
+        if (box.value && i < boxes.length - 1){ boxes[i + 1].focus(); }
+        var allFilled = Array.from(boxes).every(function(b){ return b.value.length === 1; });
+        if (allFilled){ attemptVerifyOtp(context); }
+      });
+      box.addEventListener('keydown', function(e){
+        if (e.key === 'Backspace' && !box.value && i > 0){ boxes[i - 1].focus(); }
+      });
+    });
+  }
+
+  async function attemptVerifyOtp(context){
+    var code = getOtpValue(context);
+    var errorEl = document.getElementById(context + '-otp-error');
+    errorEl.textContent = '';
+    try {
+      var data = await apiRequest('POST', '/auth/verify-otp', {otp_token: pendingOtpToken[context], code: code});
+      accessToken = data.access_token;
+      await unlockApp();
+    } catch (e) {
+      errorEl.textContent = e.message;
+    }
+  }
+
+  async function resendOtp(context){
+    var errorEl = document.getElementById(context + '-otp-error');
+    try {
+      var data = await apiRequest('POST', '/auth/resend-otp', {otp_token: pendingOtpToken[context]});
+      pendingOtpToken[context] = data.otp_token;
+      clearOtpBoxes(context);
+      errorEl.textContent = '';
+      document.getElementById(context + '-otp-hint').textContent = 'A new code has been sent -- check the uvicorn terminal.';
+    } catch (e) {
+      errorEl.textContent = e.message;
+    }
+  }
+
+  async function unlockApp(){
+    document.getElementById('desktop-auth-overlay').style.display = 'none';
+    document.getElementById('mobile-auth-gate').style.display = 'none';
+    document.getElementById('mobile-app-shell').style.display = 'flex';
+    await refreshEverything();
+  }
+
+  function lockApp(){
+    accessToken = null;
+    document.getElementById('desktop-auth-overlay').style.display = 'flex';
+    document.getElementById('mobile-auth-gate').style.display = 'flex';
+    document.getElementById('mobile-app-shell').style.display = 'none';
+    ['desktop', 'mobile'].forEach(function(context){
+      document.getElementById(context + '-login-screen').style.display = 'block';
+      document.getElementById(context + '-otp-screen').style.display = 'none';
+      document.getElementById(context + '-login-id').value = '';
+      document.getElementById(context + '-login-password').value = '';
+      document.getElementById(context + '-login-error').textContent = '';
+      clearOtpBoxes(context);
+    });
+  }
+
+  // =========================================================================
+  // NAV / TOGGLE (pure UI, no data involved)
+  // =========================================================================
+  document.querySelectorAll('.nav-item').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.view).classList.add('active');
+      document.getElementById('view-heading').textContent = btn.querySelector('.label').textContent;
+    });
+  });
+
+  var desktopView = document.getElementById('desktop-view');
+  var mobileView = document.getElementById('mobile-view');
+  document.getElementById('toggle-desktop').addEventListener('click', function(){
+    desktopView.style.display = 'flex'; mobileView.style.display = 'none';
+    this.classList.add('active'); document.getElementById('toggle-mobile').classList.remove('active');
+  });
+  document.getElementById('toggle-mobile').addEventListener('click', function(){
+    desktopView.style.display = 'none'; mobileView.style.display = 'flex';
+    this.classList.add('active'); document.getElementById('toggle-desktop').classList.remove('active');
+  });
+
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('.m-view').forEach(function(v){ v.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.mview).classList.add('active');
+    });
+  });
+
+  // =========================================================================
+  // AUTOCOMPLETE / SUGGESTION LISTS -- fetched from the API, refreshed after
+  // every save so new values show up immediately everywhere they're used.
+  // =========================================================================
+  var partyDirectory = {}; // name -> {address, mobile}, cached from GET /parties
+  var BRICK_TYPES = ['4 inch', '6 inch']; // fallback; overwritten from /production/brick-types
+
+  async function refreshDatalists(){
+    try {
+      var parties = await apiRequest('GET', '/parties');
+      partyDirectory = {};
+      parties.forEach(function(p){ partyDirectory[p.name] = {address: p.address, mobile: p.mobile}; });
+      document.getElementById('party-directory-list').innerHTML =
+        parties.map(function(p){ return '<option value="' + p.name + '"></option>'; }).join('');
+
+      var modes = await apiRequest('GET', '/cash/modes');
+      document.getElementById('payment-mode-list').innerHTML =
+        modes.map(function(m){ return '<option value="' + m + '"></option>'; }).join('');
+
+      var particulars = await apiRequest('GET', '/expenses/particulars');
+      document.getElementById('expense-particulars-list').innerHTML =
+        particulars.map(function(p){ return '<option value="' + p + '"></option>'; }).join('');
+
+      var details = await apiRequest('GET', '/expenses/details');
+      document.getElementById('expense-details-list').innerHTML =
+        details.map(function(d){ return '<option value="' + d + '"></option>'; }).join('');
+
+      var materials = await apiRequest('GET', '/raw-materials/materials');
+      document.getElementById('raw-material-list').innerHTML =
+        materials.map(function(m){ return '<option value="' + m + '"></option>'; }).join('');
+
+      var units = await apiRequest('GET', '/raw-materials/units');
+      document.getElementById('raw-unit-list').innerHTML =
+        units.map(function(u){ return '<option value="' + u + '"></option>'; }).join('');
+
+      var suppliers = await apiRequest('GET', '/raw-materials/suppliers');
+      document.getElementById('raw-supplier-list').innerHTML =
+        suppliers.map(function(s){ return '<option value="' + s + '"></option>'; }).join('');
+
+      BRICK_TYPES = await apiRequest('GET', '/production/brick-types');
+    } catch (e) {
+      console.error('Could not refresh autocomplete lists:', e.message);
+    }
+  }
+
+  function onPartyPicked(module){
+    var name = document.getElementById(module + '-form-party').value;
+    var match = partyDirectory[name];
+    if (match){
+      document.getElementById(module + '-form-address').value = match.address;
+      document.getElementById(module + '-form-mobile').value = match.mobile;
+    }
+  }
+
+  // =========================================================================
+  // MODALS -- shared open/close/clear logic
+  // =========================================================================
+  var editing = {sales: null, cash: null, expenses: null, production: null, raw: null};
+  var modalTitles = {
+    sales: {add: 'New Sale Entry', edit: 'Edit Sale Entry'},
+    cash: {add: 'New Cash Book Entry', edit: 'Edit Cash Book Entry'},
+    expenses: {add: 'New Expense Entry', edit: 'Edit Expense Entry'},
+    production: {add: 'New Production Entry', edit: 'Edit Production Entry'},
+    raw: {add: 'New Raw Material Entry', edit: 'Edit Raw Material Entry'},
+  };
+
+  function clearForm(name){
+    var modal = document.getElementById(name + '-modal');
+    modal.querySelectorAll('input').forEach(function(inp){ inp.value = ''; });
+    modal.querySelectorAll('select').forEach(function(sel){ sel.selectedIndex = 0; });
+  }
+  function closeModal(name){
+    document.getElementById(name + '-modal').classList.remove('open');
+    clearForm(name);
+    editing[name] = null;
+  }
+  document.querySelectorAll('.modal-overlay').forEach(function(overlay){
+    overlay.addEventListener('click', function(e){ if (e.target === overlay){ overlay.classList.remove('open'); } });
+  });
+
+  function openAddModal(name){
+    editing[name] = null;
+    clearForm(name);
+    document.getElementById(name + '-modal-title').textContent = modalTitles[name].add;
+    var dateField = document.getElementById(name + '-form-date');
+    if (dateField) dateField.value = todayIso();
+    if (name === 'sales'){
+      document.getElementById('sales-form-cartby').value = 'Party';
+      document.getElementById('sales-form-cartval').value = '0';
+      document.getElementById('sales-form-brick-type').value = '4 inch';
+    }
+    if (name === 'production'){
+      document.getElementById('production-form-brick-type').value = '4 inch';
+      updateProductionFormBricks();
+    }
+    document.getElementById(name + '-modal').classList.add('open');
+  }
+
+  function populateFormForEdit(name, row){
+    if (name === 'sales'){
+      document.getElementById('sales-form-date').value = row.date;
+      document.getElementById('sales-form-party').value = row.party_name;
+      document.getElementById('sales-form-address').value = row.address;
+      document.getElementById('sales-form-mobile').value = row.mobile;
+      document.getElementById('sales-form-brick-type').value = row.brick_type;
+      document.getElementById('sales-form-qty').value = row.quantity;
+      document.getElementById('sales-form-value').value = row.total_value;
+      document.getElementById('sales-form-cartby').value = row.carting_by;
+      document.getElementById('sales-form-cartval').value = row.carting_value;
+    } else if (name === 'cash'){
+      document.getElementById('cash-form-date').value = row.date;
+      document.getElementById('cash-form-party').value = row.name;
+      document.getElementById('cash-form-address').value = row.address;
+      document.getElementById('cash-form-mobile').value = row.mobile;
+      document.getElementById('cash-form-amount').value = row.amount;
+      document.getElementById('cash-form-mode').value = row.mode;
+    } else if (name === 'expenses'){
+      document.getElementById('expenses-form-date').value = row.date;
+      document.getElementById('expenses-form-particulars').value = row.particulars;
+      document.getElementById('expenses-form-details').value = row.details;
+      document.getElementById('expenses-form-amount').value = row.amount;
+    } else if (name === 'production'){
+      document.getElementById('production-form-date').value = row.date;
+      document.getElementById('production-form-brick-type').value = row.brick_type;
+      document.getElementById('production-form-pallets').value = row.pallets;
+      document.getElementById('production-form-by').value = row.entered_by;
+      updateProductionFormBricks();
+    } else if (name === 'raw'){
+      document.getElementById('raw-form-date').value = row.date;
+      document.getElementById('raw-form-material').value = row.material;
+      document.getElementById('raw-form-quantity').value = row.quantity;
+      document.getElementById('raw-form-unit').value = row.unit;
+      document.getElementById('raw-form-cost').value = row.cost;
+      document.getElementById('raw-form-supplier').value = row.supplier;
+    }
+  }
+
+  function openEditModal(name, id){
+    var row = (currentRows[name] || []).find(function(r){ return r.id === id; });
+    if (!row){ alert('Could not find that entry -- try refreshing.'); return; }
+    editing[name] = id;
+    document.getElementById(name + '-modal-title').textContent = modalTitles[name].edit;
+    populateFormForEdit(name, row);
+    document.getElementById(name + '-modal').classList.add('open');
+  }
+
+  async function deleteEntry(module, id){
+    var labels = {sales: 'sale entry', cash: 'cash entry', expenses: 'expense entry', production: 'production entry', raw: 'raw material entry'};
+    var apiPath = {sales:'sales', cash:'cash', expenses:'expenses', production:'production', raw:'raw-materials'}[module];
+    if (!window.confirm('Delete this ' + labels[module] + '? This cannot be undone.')) return;
+    try {
+      await apiRequest('DELETE', '/' + apiPath + '/' + id);
+      await refreshModule(module);
+      await refreshDatalists();
+    } catch (e) {
+      alert('Could not delete: ' + e.message);
+    }
+  }
+
+  // Cache of rows currently on screen, keyed by real DB id -- lets Edit open
+  // a pre-filled form without a second network round trip.
+  var currentRows = {sales: [], cash: [], expenses: [], production: [], raw: []};
+
+  // =========================================================================
+  // SALES BOOK (now with Brick Type)
+  // =========================================================================
+  async function renderSalesTable(){
+    var from = document.getElementById('sales-from').value;
+    var to = document.getElementById('sales-to').value;
+    var partySelect = document.getElementById('sales-party');
+    var currentParty = partySelect.value;
+    partySelect.innerHTML = distinctFilterOptions(Object.keys(partyDirectory).sort(), 'All Parties');
+    partySelect.value = currentParty;
+    var selectedParty = partySelect.value;
+
+    var btSelect = document.getElementById('sales-brick-type');
+    var currentBt = btSelect.value;
+    btSelect.innerHTML = distinctFilterOptions(BRICK_TYPES, 'Both');
+    btSelect.value = currentBt;
+    var selectedBt = btSelect.value;
+
+    var rows;
+    try {
+      rows = await apiRequest('GET', '/sales' + qs({date_from: from, date_to: to, party: selectedParty, brick_type: selectedBt}));
+    } catch (e) {
+      document.getElementById('sales-rows').innerHTML = '<tr><td colspan="11" class="muted-dash">' + e.message + '</td></tr>';
+      return;
+    }
+    currentRows.sales = rows;
+
+    var totalQty = rows.reduce(function(s,r){ return s + r.quantity; }, 0);
+    var totalValue = rows.reduce(function(s,r){ return s + r.total_value; }, 0);
+    document.getElementById('sales-summary').textContent = rows.length + (rows.length === 1 ? ' sale' : ' sales') +
+      (selectedParty ? ' with ' + selectedParty : ' in this range') +
+      (selectedBt ? ' (' + selectedBt + ')' : '') +
+      ' \u2014 ' + totalQty.toLocaleString('en-IN') + ' bricks, ' + formatINR(totalValue) + ' total';
+
+    document.getElementById('sales-rows').innerHTML = rows.map(function(r){
+      return '<tr><td>' + fmtDate(r.date) + '</td><td>' + r.sr_no + '</td><td>' + r.party_name + '</td><td>' + r.address + '</td><td>' + r.mobile + '</td>' +
+        '<td>' + r.brick_type + '</td>' +
+        '<td class="num">' + r.quantity.toLocaleString('en-IN') + '</td><td class="num">' + formatINR(r.total_value) + '</td>' +
+        '<td><span class="pill ' + (r.carting_by === 'Company' ? 'clay' : 'muted') + '">' + r.carting_by + '</span></td>' +
+        '<td class="num' + (r.carting_value ? '' : ' muted-dash') + '">' + (r.carting_value ? formatINR(r.carting_value) : '\u2014') + '</td>' +
+        '<td><div class="row-actions">' +
+          '<button class="icon-btn" title="Edit" onclick="openEditModal(\'sales\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
+          '<button class="icon-btn danger" title="Delete" onclick="deleteEntry(\'sales\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
+        '</div></td></tr>';
+    }).join('') || '<tr><td colspan="11" class="muted-dash">No entries in this range</td></tr>';
+
+    renderMobileSales();
+  }
+
+  function renderMobileSales(){
+    document.getElementById('m-sales-rows').innerHTML = currentRows.sales.map(function(r){
+      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + r.party_name + '</div><div class="m-row-sub">' + shortDate(r.date) + ' \u00b7 ' + r.brick_type + ' \u00b7 Qty ' + r.quantity.toLocaleString('en-IN') + '</div></div>' +
+        '<div class="m-row-right"><div class="m-row-amount">' + formatINR(r.total_value) + '</div><div class="m-row-actions">' +
+        '<button class="icon-btn small" onclick="openEditModal(\'sales\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
+        '<button class="icon-btn small danger" onclick="deleteEntry(\'sales\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
+        '</div></div></div>';
+    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries yet</div>';
+  }
+
+  async function submitSalesEntry(){
+    var payload = {
+      date: document.getElementById('sales-form-date').value,
+      party_name: document.getElementById('sales-form-party').value.trim(),
+      address: document.getElementById('sales-form-address').value.trim(),
+      mobile: document.getElementById('sales-form-mobile').value.trim(),
+      brick_type: document.getElementById('sales-form-brick-type').value,
+      quantity: parseFloat(document.getElementById('sales-form-qty').value),
+      total_value: parseFloat(document.getElementById('sales-form-value').value),
+      carting_by: document.getElementById('sales-form-cartby').value,
+      carting_value: parseFloat(document.getElementById('sales-form-cartval').value) || 0,
+    };
+    if (!payload.date || !payload.party_name || isNaN(payload.quantity) || isNaN(payload.total_value)){
+      alert('Date, party name, quantity and total value are required.'); return;
+    }
+    try {
+      if (editing.sales != null){
+        await apiRequest('PUT', '/sales/' + editing.sales, payload);
+      } else {
+        await apiRequest('POST', '/sales', payload);
+      }
+      await refreshDatalists();
+      await renderSalesTable();
+      await renderStockChart();
+      closeModal('sales');
+    } catch (e) {
+      alert('Could not save: ' + e.message);
+    }
+  }
+
+  // =========================================================================
+  // CASH BOOK
+  // =========================================================================
+  async function renderCashTable(){
+    var from = document.getElementById('cash-from').value;
+    var to = document.getElementById('cash-to').value;
+    var partySelect = document.getElementById('cash-party');
+    var modeSelect = document.getElementById('cash-mode');
+    var currentParty = partySelect.value, currentMode = modeSelect.value;
+
+    partySelect.innerHTML = distinctFilterOptions(Object.keys(partyDirectory).sort(), 'All Parties');
+    partySelect.value = currentParty;
+    try {
+      var modes = await apiRequest('GET', '/cash/modes');
+      modeSelect.innerHTML = distinctFilterOptions(modes, 'All Modes');
+      modeSelect.value = currentMode;
+    } catch (e) { /* non-fatal */ }
+
+    var selectedParty = partySelect.value, selectedMode = modeSelect.value;
+    var rows;
+    try {
+      rows = await apiRequest('GET', '/cash' + qs({date_from: from, date_to: to, party: selectedParty, mode: selectedMode}));
+    } catch (e) {
+      document.getElementById('cash-rows').innerHTML = '<tr><td colspan="7" class="muted-dash">' + e.message + '</td></tr>';
+      return;
+    }
+    currentRows.cash = rows;
+
+    var totalAmount = rows.reduce(function(s,r){ return s + r.amount; }, 0);
+    document.getElementById('cash-summary').textContent = rows.length + (rows.length === 1 ? ' entry' : ' entries') + ' \u2014 ' + formatINR(totalAmount) + ' total';
+
+    document.getElementById('cash-rows').innerHTML = rows.map(function(r){
+      return '<tr><td>' + fmtDate(r.date) + '</td><td>' + r.name + '</td><td>' + r.address + '</td><td>' + r.mobile + '</td>' +
+        '<td class="num">' + formatINR(r.amount) + '</td><td>' + r.mode + '</td>' +
+        '<td><div class="row-actions">' +
+          '<button class="icon-btn" title="Edit" onclick="openEditModal(\'cash\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
+          '<button class="icon-btn danger" title="Delete" onclick="deleteEntry(\'cash\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
+        '</div></td></tr>';
+    }).join('') || '<tr><td colspan="7" class="muted-dash">No entries in this range</td></tr>';
+
+    renderMobileCash();
+  }
+
+  function renderMobileCash(){
+    document.getElementById('m-cash-rows').innerHTML = currentRows.cash.map(function(r){
+      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + r.name + '</div><div class="m-row-sub">' + shortDate(r.date) + ' \u00b7 ' + r.mode + '</div></div>' +
+        '<div class="m-row-right"><div class="m-row-amount clr-sage">' + formatINR(r.amount) + '</div><div class="m-row-actions">' +
+        '<button class="icon-btn small" onclick="openEditModal(\'cash\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
+        '<button class="icon-btn small danger" onclick="deleteEntry(\'cash\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
+        '</div></div></div>';
+    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries yet</div>';
+  }
+
+  async function submitCashEntry(){
+    var payload = {
+      date: document.getElementById('cash-form-date').value,
+      name: document.getElementById('cash-form-party').value.trim(),
+      address: document.getElementById('cash-form-address').value.trim(),
+      mobile: document.getElementById('cash-form-mobile').value.trim(),
+      amount: parseFloat(document.getElementById('cash-form-amount').value),
+      mode: document.getElementById('cash-form-mode').value.trim(),
+    };
+    if (!payload.date || !payload.name || isNaN(payload.amount) || !payload.mode){
+      alert('Date, name, amount and mode of payment are required.'); return;
+    }
+    try {
+      if (editing.cash != null){
+        await apiRequest('PUT', '/cash/' + editing.cash, payload);
+      } else {
+        await apiRequest('POST', '/cash', payload);
+      }
+      await refreshDatalists();
+      await renderCashTable();
+      closeModal('cash');
+    } catch (e) {
+      alert('Could not save: ' + e.message);
+    }
+  }
+
+  // =========================================================================
+  // EXPENSES BOOK
+  // =========================================================================
+  async function renderExpensesTable(){
+    var from = document.getElementById('expenses-from').value;
+    var to = document.getElementById('expenses-to').value;
+    var select = document.getElementById('expenses-particulars');
+    var currentValue = select.value;
+    try {
+      var particulars = await apiRequest('GET', '/expenses/particulars');
+      select.innerHTML = distinctFilterOptions(particulars, 'All');
+      select.value = currentValue;
+    } catch (e) { /* non-fatal */ }
+    var selected = select.value;
+
+    var rows;
+    try {
+      rows = await apiRequest('GET', '/expenses' + qs({date_from: from, date_to: to, particulars: selected}));
+    } catch (e) {
+      document.getElementById('expenses-rows').innerHTML = '<tr><td colspan="6" class="muted-dash">' + e.message + '</td></tr>';
+      return;
+    }
+    currentRows.expenses = rows;
+
+    document.getElementById('expenses-rows').innerHTML = rows.map(function(r){
+      return '<tr><td>' + fmtDate(r.date) + '</td><td>' + r.sr_no + '</td><td>' + r.particulars + '</td><td>' + r.details + '</td><td class="num">' + formatINR(r.amount) + '</td>' +
+        '<td><div class="row-actions">' +
+          '<button class="icon-btn" title="Edit" onclick="openEditModal(\'expenses\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
+          '<button class="icon-btn danger" title="Delete" onclick="deleteEntry(\'expenses\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
+        '</div></td></tr>';
+    }).join('') || '<tr><td colspan="6" class="muted-dash">No entries in this range</td></tr>';
+
+    renderMobileExpenses();
+  }
+
+  function renderMobileExpenses(){
+    document.getElementById('m-expenses-rows').innerHTML = currentRows.expenses.map(function(r){
+      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + r.particulars + '</div><div class="m-row-sub">' + shortDate(r.date) + ' \u00b7 ' + r.details + '</div></div>' +
+        '<div class="m-row-right"><div class="m-row-amount">' + formatINR(r.amount) + '</div><div class="m-row-actions">' +
+        '<button class="icon-btn small" onclick="openEditModal(\'expenses\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
+        '<button class="icon-btn small danger" onclick="deleteEntry(\'expenses\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
+        '</div></div></div>';
+    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries yet</div>';
+  }
+
+  async function submitExpenseEntry(){
+    var payload = {
+      date: document.getElementById('expenses-form-date').value,
+      particulars: document.getElementById('expenses-form-particulars').value.trim(),
+      details: document.getElementById('expenses-form-details').value.trim(),
+      amount: parseFloat(document.getElementById('expenses-form-amount').value),
+    };
+    if (!payload.date || !payload.particulars || isNaN(payload.amount)){
+      alert('Date, particulars and amount are required.'); return;
+    }
+    try {
+      if (editing.expenses != null){
+        await apiRequest('PUT', '/expenses/' + editing.expenses, payload);
+      } else {
+        await apiRequest('POST', '/expenses', payload);
+      }
+      await refreshDatalists();
+      await renderExpensesTable();
+      closeModal('expenses');
+    } catch (e) {
+      alert('Could not save: ' + e.message);
+    }
+  }
+
+  // =========================================================================
+  // PRODUCTION TRACKER (now with Brick Type -> correct pallet size)
+  // =========================================================================
+  var PALLET_SIZE_HINT = {'4 inch': 100, '6 inch': 66}; // for the live preview only; server is authoritative
+
+  function updateProductionFormBricks(){
+    var pallets = parseFloat(document.getElementById('production-form-pallets').value) || 0;
+    var brickType = document.getElementById('production-form-brick-type').value;
+    var perPallet = PALLET_SIZE_HINT[brickType] || 100;
+    document.getElementById('production-form-bricks').value = (pallets * perPallet).toLocaleString('en-IN') + ' bricks (' + perPallet + '/pallet)';
+  }
+
+  async function renderProductionTable(){
+    var from = document.getElementById('production-from').value;
+    var to = document.getElementById('production-to').value;
+    var btSelect = document.getElementById('production-brick-type');
+    var currentBt = btSelect.value;
+    btSelect.innerHTML = distinctFilterOptions(BRICK_TYPES, 'Both');
+    btSelect.value = currentBt;
+    var selectedBt = btSelect.value;
+
+    var rows;
+    try {
+      rows = await apiRequest('GET', '/production' + qs({date_from: from, date_to: to, brick_type: selectedBt}));
+    } catch (e) {
+      document.getElementById('production-rows').innerHTML = '<tr><td colspan="6" class="muted-dash">' + e.message + '</td></tr>';
+      return;
+    }
+    currentRows.production = rows;
+
+    document.getElementById('production-rows').innerHTML = rows.map(function(r){
+      return '<tr><td>' + fmtDate(r.date) + '</td><td>' + r.brick_type + '</td><td class="num">' + r.pallets + '</td><td class="num">' + r.bricks.toLocaleString('en-IN') + '</td><td>' + r.entered_by + '</td>' +
+        '<td><div class="row-actions">' +
+          '<button class="icon-btn" title="Edit" onclick="openEditModal(\'production\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
+          '<button class="icon-btn danger" title="Delete" onclick="deleteEntry(\'production\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
+        '</div></td></tr>';
+    }).join('') || '<tr><td colspan="6" class="muted-dash">No entries in this range</td></tr>';
+
+    renderMobileProduction();
+  }
+
+  function renderMobileProduction(){
+    document.getElementById('m-production-rows').innerHTML = currentRows.production.map(function(r){
+      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + shortDate(r.date) + ' \u00b7 ' + r.brick_type + '</div><div class="m-row-sub">' + r.pallets + ' pallets \u00b7 ' + r.entered_by + '</div></div>' +
+        '<div class="m-row-right"><div class="m-row-amount clr-kiln">' + r.bricks.toLocaleString('en-IN') + ' bricks</div><div class="m-row-actions">' +
+        '<button class="icon-btn small" onclick="openEditModal(\'production\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
+        '<button class="icon-btn small danger" onclick="deleteEntry(\'production\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
+        '</div></div></div>';
+    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries yet</div>';
+  }
+
+  async function submitProductionEntry(){
+    var payload = {
+      date: document.getElementById('production-form-date').value,
+      brick_type: document.getElementById('production-form-brick-type').value,
+      pallets: parseFloat(document.getElementById('production-form-pallets').value),
+      entered_by: document.getElementById('production-form-by').value.trim(),
+    };
+    if (!payload.date || isNaN(payload.pallets) || !payload.entered_by){
+      alert('Date, pallets produced and entered-by are required.'); return;
+    }
+    try {
+      if (editing.production != null){
+        await apiRequest('PUT', '/production/' + editing.production, payload);
+      } else {
+        await apiRequest('POST', '/production', payload);
+      }
+      await renderProductionTable();
+      await renderStockChart();
+      closeModal('production');
+    } catch (e) {
+      alert('Could not save: ' + e.message);
+    }
+  }
+
+  // =========================================================================
+  // RAW MATERIALS BOOK (new module)
+  // =========================================================================
+  async function renderRawMaterialsTable(){
+    var from = document.getElementById('raw-from').value;
+    var to = document.getElementById('raw-to').value;
+    var select = document.getElementById('raw-material-filter');
+    var currentValue = select.value;
+    try {
+      var materials = await apiRequest('GET', '/raw-materials/materials');
+      select.innerHTML = distinctFilterOptions(materials, 'All Materials');
+      select.value = currentValue;
+    } catch (e) { /* non-fatal */ }
+    var selected = select.value;
+
+    var rows;
+    try {
+      rows = await apiRequest('GET', '/raw-materials' + qs({date_from: from, date_to: to, material: selected}));
+    } catch (e) {
+      document.getElementById('raw-rows').innerHTML = '<tr><td colspan="8" class="muted-dash">' + e.message + '</td></tr>';
+      return;
+    }
+    currentRows.raw = rows;
+
+    document.getElementById('raw-rows').innerHTML = rows.map(function(r){
+      return '<tr><td>' + fmtDate(r.date) + '</td><td>' + r.sr_no + '</td><td>' + r.material + '</td>' +
+        '<td class="num">' + r.quantity.toLocaleString('en-IN') + '</td><td>' + r.unit + '</td><td class="num">' + formatINR(r.cost) + '</td><td>' + r.supplier + '</td>' +
+        '<td><div class="row-actions">' +
+          '<button class="icon-btn" title="Edit" onclick="openEditModal(\'raw\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
+          '<button class="icon-btn danger" title="Delete" onclick="deleteEntry(\'raw\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
+        '</div></td></tr>';
+    }).join('') || '<tr><td colspan="8" class="muted-dash">No entries in this range</td></tr>';
+
+    renderMobileRaw();
+  }
+
+  function renderMobileRaw(){
+    var el = document.getElementById('m-raw-rows');
+    if (!el) return;
+    el.innerHTML = currentRows.raw.map(function(r){
+      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + r.material + '</div><div class="m-row-sub">' + shortDate(r.date) + ' \u00b7 ' + r.quantity + ' ' + r.unit + ' \u00b7 ' + r.supplier + '</div></div>' +
+        '<div class="m-row-right"><div class="m-row-amount">' + formatINR(r.cost) + '</div><div class="m-row-actions">' +
+        '<button class="icon-btn small" onclick="openEditModal(\'raw\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
+        '<button class="icon-btn small danger" onclick="deleteEntry(\'raw\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
+        '</div></div></div>';
+    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries yet</div>';
+  }
+
+  async function submitRawMaterialEntry(){
+    var payload = {
+      date: document.getElementById('raw-form-date').value,
+      material: document.getElementById('raw-form-material').value.trim(),
+      quantity: parseFloat(document.getElementById('raw-form-quantity').value),
+      unit: document.getElementById('raw-form-unit').value.trim(),
+      cost: parseFloat(document.getElementById('raw-form-cost').value),
+      supplier: document.getElementById('raw-form-supplier').value.trim(),
+    };
+    if (!payload.date || !payload.material || isNaN(payload.quantity) || !payload.unit || isNaN(payload.cost)){
+      alert('Date, material, quantity, unit and cost are required.'); return;
+    }
+    try {
+      if (editing.raw != null){
+        await apiRequest('PUT', '/raw-materials/' + editing.raw, payload);
+      } else {
+        await apiRequest('POST', '/raw-materials', payload);
+      }
+      await refreshDatalists();
+      await renderRawMaterialsTable();
+      closeModal('raw');
+    } catch (e) {
+      alert('Could not save: ' + e.message);
+    }
+  }
+
+  // =========================================================================
+  // STOCK -- split per brick type
+  // =========================================================================
+  async function renderStockChart(){
+    try {
+      var stockRows = await apiRequest('GET', '/stock');
+      stockRows.forEach(function(s){
+        var suffix = s.brick_type === '4 inch' ? '4inch' : '6inch';
+        var currentEl = document.getElementById('stock-current-' + suffix);
+        var subEl = document.getElementById('stock-sub-' + suffix);
+        if (currentEl) currentEl.textContent = s.current_stock.toLocaleString('en-IN');
+        if (subEl) subEl.innerHTML = 'Produced ' + s.total_produced.toLocaleString('en-IN') + ' &minus; Sold ' + s.total_sold.toLocaleString('en-IN');
+      });
+    } catch (e) { console.error(e.message); }
+
+    var from = document.getElementById('stock-from').value;
+    var to = document.getElementById('stock-to').value;
+    var btSelect = document.getElementById('stock-brick-type');
+    var brickType = btSelect.value || '4 inch';
+    var wrap = document.getElementById('stock-chart');
+    var rows;
+    try {
+      rows = await apiRequest('GET', '/stock/trend' + qs({date_from: from, date_to: to, brick_type: brickType}));
+    } catch (e) {
+      wrap.innerHTML = '<div class="muted-dash" style="padding:20px;">' + e.message + '</div>';
+      return;
+    }
+    if (rows.length === 0){ wrap.innerHTML = '<div class="muted-dash" style="padding:20px;">No data in this range</div>'; return; }
+    var max = Math.max.apply(null, rows.map(function(r){ return r.closing; }).concat([1]));
+    wrap.innerHTML = rows.map(function(r, i){
+      var pct = Math.max(4, Math.round((Math.max(r.closing,0) / max) * 100));
+      var isLast = i === rows.length - 1;
+      return '<div class="bar-col"><div class="bar" style="height:' + pct + '%;' + (isLast ? 'background:var(--clay)' : '') + '"></div><div class="bar-day">' + shortDate(r.date) + '</div></div>';
+    }).join('');
+  }
+
+  // =========================================================================
+  // LEDGER -- party panels + drill-down, computed server-side
+  // =========================================================================
+  var currentLedgerParty = null;
+  function ledgerRangeInputs(){
+    return {date_from: document.getElementById('ledger-from').value, date_to: document.getElementById('ledger-to').value};
+  }
+
+  async function renderLedgerGrid(){
+    var grid = document.getElementById('ledger-grid');
+    var summary;
+    try {
+      summary = await apiRequest('GET', '/ledger/summary' + qs(ledgerRangeInputs()));
+    } catch (e) {
+      grid.innerHTML = '<div class="muted-dash">' + e.message + '</div>';
+      return;
+    }
+    grid.innerHTML = '';
+    summary.forEach(function(row){
+      var card = document.createElement('button');
+      card.className = 'ledger-card';
+      card.innerHTML = '<div class="ledger-card-name">' + row.party + '</div>' +
+        '<div class="ledger-card-balance" style="color:' + (row.balance > 0 ? 'var(--clay)' : 'var(--sage)') + '">' +
+        (row.balance > 0 ? formatINR(row.balance) + ' due' : 'Settled') + '</div>' +
+        '<div class="ledger-card-sub">' + row.entries + ' entries in range</div>';
+      card.addEventListener('click', function(){ openLedgerDetail(row.party); });
+      grid.appendChild(card);
+    });
+
+    var moreWrap = document.getElementById('m-more-ledger-rows');
+    if (moreWrap){
+      moreWrap.innerHTML = summary.map(function(row){
+        return '<button class="m-list-row" data-party="' + row.party + '"><div class="m-row-title">' + row.party + '</div>' +
+          '<div class="m-row-amount ' + (row.balance > 0 ? 'clr-clay' : 'clr-sage') + '">' + (row.balance > 0 ? formatINR(row.balance) + ' due' : 'Settled') + '</div></button>';
+      }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No parties yet</div>';
+      moreWrap.querySelectorAll('.m-list-row[data-party]').forEach(function(btn){
+        btn.addEventListener('click', function(){ openMobileLedgerDetail(btn.dataset.party); });
+      });
+    }
+  }
+
+  function applyLedgerFilter(){ renderLedgerGrid(); }
+
+  async function openLedgerDetail(party){
+    currentLedgerParty = party;
+    document.getElementById('ledger-list').style.display = 'none';
+    document.getElementById('ledger-detail').style.display = 'block';
+    document.getElementById('ledger-detail-name').textContent = party;
+    var range = ledgerRangeInputs();
+    document.getElementById('ledger-detail-range').textContent = 'Showing entries from ' + fmtDate(range.date_from) + ' to ' + fmtDate(range.date_to);
+
+    var txns;
+    try {
+      txns = await apiRequest('GET', '/ledger/' + encodeURIComponent(party) + qs(range));
+    } catch (e) {
+      document.getElementById('ledger-detail-rows').innerHTML = '<tr><td colspan="5" class="muted-dash">' + e.message + '</td></tr>';
+      return;
+    }
+    document.getElementById('ledger-detail-rows').innerHTML = txns.map(function(t){
+      return '<tr><td>' + fmtDate(t.date) + '</td><td>' + t.particulars + '</td>' +
+        '<td class="num">' + (t.debit ? formatINR(t.debit) : '<span class="muted-dash">\u2014</span>') + '</td>' +
+        '<td class="num">' + (t.credit ? formatINR(t.credit) : '<span class="muted-dash">\u2014</span>') + '</td>' +
+        '<td class="num">' + formatINR(t.balance) + '</td></tr>';
+    }).join('');
+    var finalBalance = txns.length ? txns[txns.length - 1].balance : 0;
+    var balEl = document.getElementById('ledger-detail-balance');
+    balEl.textContent = finalBalance > 0 ? formatINR(finalBalance) + ' due' : 'Settled';
+    balEl.style.color = finalBalance > 0 ? 'var(--clay)' : 'var(--sage)';
+  }
+
+  document.getElementById('ledger-back-btn').addEventListener('click', function(){
+    document.getElementById('ledger-detail').style.display = 'none';
+    document.getElementById('ledger-list').style.display = 'block';
+  });
+
+  async function openMobileLedgerDetail(party){
+    currentLedgerParty = party;
+    document.querySelectorAll('.m-view').forEach(function(v){ v.classList.remove('active'); });
+    document.getElementById('m-ledger-detail').classList.add('active');
+    document.getElementById('m-ledger-detail-name').textContent = party;
+    var txns;
+    try {
+      txns = await apiRequest('GET', '/ledger/' + encodeURIComponent(party));
+    } catch (e) {
+      document.getElementById('m-ledger-detail-rows').innerHTML = '<div class="muted-dash">' + e.message + '</div>';
+      return;
+    }
+    document.getElementById('m-ledger-detail-rows').innerHTML = txns.map(function(t){
+      var typeLabel = t.debit ? ('Debit ' + formatINR(t.debit)) : ('Credit ' + formatINR(t.credit));
+      return '<div class="m-list-row"><div><div class="m-row-title">' + t.particulars + '</div><div class="m-row-sub">' + fmtDate(t.date) + ' \u00b7 ' + typeLabel + '</div></div>' +
+        '<div class="m-row-amount" style="color:' + (t.balance > 0 ? 'var(--clay)' : 'var(--sage)') + '">Bal ' + formatINR(t.balance) + '</div></div>';
+    }).join('');
+    var finalBalance = txns.length ? txns[txns.length - 1].balance : 0;
+    var mBalEl = document.getElementById('m-ledger-detail-balance');
+    mBalEl.textContent = finalBalance > 0 ? formatINR(finalBalance) + ' due' : 'Settled';
+    mBalEl.style.color = finalBalance > 0 ? 'var(--clay)' : 'var(--sage)';
+  }
+
+  document.getElementById('m-ledger-back-btn').addEventListener('click', function(){
+    document.querySelectorAll('.m-view').forEach(function(v){ v.classList.remove('active'); });
+    document.getElementById('m-more').classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelector('.tab-btn[data-mview="m-more"]').classList.add('active');
+  });
+
+  // =========================================================================
+  // DASHBOARD + REPORTS
+  // =========================================================================
+  async function renderDashboard(){
+    try {
+      var d = await apiRequest('GET', '/reports/dashboard');
+      document.getElementById('dash-bricks-produced').textContent = d.bricks_produced_today.toLocaleString('en-IN');
+      document.getElementById('dash-bricks-sold').textContent = d.bricks_sold_today.toLocaleString('en-IN');
+      document.getElementById('dash-cash-received').textContent = formatINR(d.cash_received_today);
+      document.getElementById('dash-expenses').textContent = formatINR(d.expenses_today);
+      var stock = await apiRequest('GET', '/stock');
+      var total = stock.reduce(function(s,r){ return s + r.current_stock; }, 0);
+      document.getElementById('dash-current-stock').textContent = total.toLocaleString('en-IN');
+    } catch (e) { console.error(e.message); }
+
+    try {
+      var sales = await apiRequest('GET', '/sales');
+      document.getElementById('dash-recent-sales').innerHTML = sales.slice(0,3).map(function(r){
+        return '<tr><td>' + shortDate(r.date) + '</td><td>' + r.party_name + ' (' + r.brick_type + ')</td><td class="num">' + r.quantity.toLocaleString('en-IN') + '</td><td class="num">' + formatINR(r.total_value) + '</td></tr>';
+      }).join('') || '<tr><td colspan="4" class="muted-dash">No sales yet</td></tr>';
+      var prod = await apiRequest('GET', '/production');
+      document.getElementById('dash-recent-production').innerHTML = prod.slice(0,3).map(function(r){
+        return '<tr><td>' + shortDate(r.date) + ' (' + r.brick_type + ')</td><td class="num">' + r.pallets + '</td><td class="num">' + r.bricks.toLocaleString('en-IN') + '</td></tr>';
+      }).join('') || '<tr><td colspan="3" class="muted-dash">No production logged yet</td></tr>';
+    } catch (e) { console.error(e.message); }
+  }
+
+  async function renderReports(){
+    try {
+      var m = await apiRequest('GET', '/reports/monthly');
+      document.getElementById('rep-period').textContent = m.period;
+      document.getElementById('rep-sales').textContent = formatINR(m.sales_this_month);
+      document.getElementById('rep-produced').textContent = m.bricks_produced.toLocaleString('en-IN');
+      document.getElementById('rep-sold').textContent = m.bricks_sold.toLocaleString('en-IN');
+      document.getElementById('rep-cash').textContent = formatINR(m.cash_received);
+      document.getElementById('rep-outstanding').textContent = formatINR(m.outstanding_credit);
+      document.getElementById('rep-expenses').textContent = formatINR(m.labor_fuel_expenses);
+
+      var moreP = document.getElementById('m-more-rep-period'); if (moreP) moreP.textContent = 'Reports \u2014 ' + m.period;
+      var s1 = document.getElementById('m-more-sales-month'); if (s1) s1.textContent = formatINR(m.sales_this_month);
+      var s2 = document.getElementById('m-more-cash-month'); if (s2) s2.textContent = formatINR(m.cash_received);
+      var s3 = document.getElementById('m-more-outstanding'); if (s3) s3.textContent = formatINR(m.outstanding_credit);
+      var s4 = document.getElementById('m-more-raw-cost'); if (s4) s4.textContent = formatINR(m.raw_material_cost);
+    } catch (e) { console.error(e.message); }
+
+    try {
+      var stock = await apiRequest('GET', '/stock');
+      stock.forEach(function(s){
+        var suffix = s.brick_type === '4 inch' ? '4inch' : '6inch';
+        var el = document.getElementById('m-more-stock-' + suffix);
+        var subEl = document.getElementById('m-more-stock-sub-' + suffix);
+        if (el) el.textContent = s.current_stock.toLocaleString('en-IN') + ' bricks';
+        if (subEl) subEl.textContent = 'Produced ' + s.total_produced.toLocaleString('en-IN') + ' \u2212 Sold ' + s.total_sold.toLocaleString('en-IN');
+      });
+    } catch (e) { /* non-fatal */ }
+  }
+
+  // =========================================================================
+  // ONE-SHOT REFRESH
+  // =========================================================================
+  async function refreshModule(module){
+    if (module === 'sales') return renderSalesTable();
+    if (module === 'cash') return renderCashTable();
+    if (module === 'expenses') return renderExpensesTable();
+    if (module === 'production') return renderProductionTable();
+    if (module === 'raw') return renderRawMaterialsTable();
+  }
+
+  async function refreshEverything(){
+    await refreshDatalists();
+    var today = todayIso(), monthStart = firstOfMonthIso();
+    ['sales','cash','expenses','production','raw'].forEach(function(m){
+      var f = document.getElementById(m + '-from'), t = document.getElementById(m + '-to');
+      if (f && !f.value) f.value = monthStart;
+      if (t && !t.value) t.value = today;
+    });
+    var lf = document.getElementById('ledger-from'), lt = document.getElementById('ledger-to');
+    if (lf && !lf.value) lf.value = monthStart;
+    if (lt && !lt.value) lt.value = today;
+    var sf = document.getElementById('stock-from'), st = document.getElementById('stock-to');
+    if (sf && !sf.value) sf.value = monthStart;
+    if (st && !st.value) st.value = today;
+
+    await Promise.all([
+      renderSalesTable(), renderCashTable(), renderExpensesTable(), renderProductionTable(), renderRawMaterialsTable(),
+      renderStockChart(), renderLedgerGrid(), renderDashboard(), renderReports(),
+    ]);
+  }
+
+  // =========================================================================
+  // PDF EXPORT -- same drawing code throughout; only the data source differs.
+  // =========================================================================
+  var MARGIN = 40;
+  function newPDF(orientation){ var Ctor = window.jspdf.jsPDF; return new Ctor({unit:'pt', format:'a4', orientation: orientation || 'portrait'}); }
+  function rangeLabel(from, to){ return (from ? fmtDate(from) : 'Start') + '  to  ' + (to ? fmtDate(to) : 'Today'); }
+
+  function pdfHeader(doc, title, subtitle){
+    var pw = doc.internal.pageSize.getWidth();
+    doc.setTextColor(0,0,0);
+    doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.text(title, MARGIN, 50);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.text(subtitle, MARGIN, 66);
+    doc.setDrawColor(0,0,0); doc.setLineWidth(1); doc.line(MARGIN, 76, pw - MARGIN, 76);
+    return 98;
+  }
+
+  function pdfTable(doc, y, sectionTitle, columns, rows){
+    var pw = doc.internal.pageSize.getWidth(), ph = doc.internal.pageSize.getHeight();
+    var usable = pw - MARGIN * 2;
+    var totalW = columns.reduce(function(s,c){ return s + (c.w || 1); }, 0);
+    var colX = []; var x = MARGIN;
+    columns.forEach(function(c){ colX.push(x); x += usable * ((c.w || 1) / totalW); });
+    if (sectionTitle){
+      if (y > ph - 100){ doc.addPage(); y = MARGIN + 20; }
+      doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(0,0,0);
+      doc.text(sectionTitle, MARGIN, y); y += 16;
+    }
+    function drawHeaderRow(){
+      doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(0,0,0);
+      columns.forEach(function(c,i){
+        var w = usable * ((c.w || 1) / totalW);
+        if (c.align === 'right'){ doc.text(c.header, colX[i] + w - 4, y, {align:'right'}); }
+        else { doc.text(c.header, colX[i] + 3, y); }
+      });
+      y += 6; doc.setDrawColor(0,0,0); doc.setLineWidth(0.75); doc.line(MARGIN, y, pw - MARGIN, y); y += 13;
+    }
+    drawHeaderRow();
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+    rows.forEach(function(r){
+      if (y > ph - 70){ doc.addPage(); y = MARGIN + 20; drawHeaderRow(); doc.setFont('helvetica','normal'); doc.setFontSize(8.5); }
+      columns.forEach(function(c,i){
+        var w = usable * ((c.w || 1) / totalW);
+        var val = (r[c.key] === undefined || r[c.key] === null || r[c.key] === '') ? '-' : String(r[c.key]);
+        if (c.align === 'right'){ doc.text(val, colX[i] + w - 4, y, {align:'right'}); }
+        else { doc.text(val, colX[i] + 3, y); }
+      });
+      y += 7; doc.setDrawColor(190,190,190); doc.setLineWidth(0.4); doc.line(MARGIN, y, pw - MARGIN, y); doc.setDrawColor(0,0,0); y += 13;
+    });
+    return y + 8;
+  }
+
+  function pdfFooterAndSave(doc, filename){
+    var pw = doc.internal.pageSize.getWidth(), ph = doc.internal.pageSize.getHeight();
+    var pages = doc.internal.getNumberOfPages();
+    for (var i = 1; i <= pages; i++){
+      doc.setPage(i);
+      doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(0,0,0);
+      doc.text('Shivkrupa Enterprises - generated from live data', MARGIN, ph - 24);
+      doc.text('Page ' + i + ' of ' + pages, pw - MARGIN, ph - 24, {align:'right'});
+    }
+    doc.save(filename);
+  }
+
+  async function downloadSalesPDF(){
+    var from = document.getElementById('sales-from').value, to = document.getElementById('sales-to').value;
+    var selectedParty = document.getElementById('sales-party').value;
+    var selectedBt = document.getElementById('sales-brick-type').value;
+    var rows = currentRows.sales.map(function(r){
+      return {date:fmtDate(r.date), sr:r.sr_no, party:r.party_name, address:r.address, mobile:r.mobile, bt:r.brick_type,
+        qty:r.quantity.toLocaleString('en-IN'), value:formatINR_PDF(r.total_value), cartBy:r.carting_by,
+        cartVal:r.carting_value ? formatINR_PDF(r.carting_value) : '-'};
+    });
+    var doc = newPDF('landscape');
+    var subtitle = rangeLabel(from, to) + (selectedParty ? '   |   Party: ' + selectedParty : '') + (selectedBt ? '   |   ' + selectedBt : '');
+    var y = pdfHeader(doc, 'Sales Book', subtitle);
+    pdfTable(doc, y, null, [
+      {header:'Date',key:'date',w:1},{header:'Sr.No',key:'sr',w:0.5},{header:'Party Name',key:'party',w:1.6},
+      {header:'Address',key:'address',w:1.4},{header:'Mobile',key:'mobile',w:1},{header:'Brick Type',key:'bt',w:0.8},
+      {header:'Qty',key:'qty',w:0.7,align:'right'},{header:'Total Value',key:'value',w:0.9,align:'right'},
+      {header:'Carting By',key:'cartBy',w:0.8},{header:'Carting Value',key:'cartVal',w:0.9,align:'right'}
+    ], rows);
+    pdfFooterAndSave(doc, 'Shivkrupa_Sales_Book.pdf');
+  }
+
+  async function downloadCashPDF(){
+    var from = document.getElementById('cash-from').value, to = document.getElementById('cash-to').value;
+    var selectedParty = document.getElementById('cash-party').value, selectedMode = document.getElementById('cash-mode').value;
+    var rows = currentRows.cash.map(function(r){
+      return {date:fmtDate(r.date), name:r.name, address:r.address, mobile:r.mobile, amount:formatINR_PDF(r.amount), mode:r.mode};
+    });
+    var doc = newPDF();
+    var subtitle = rangeLabel(from, to) + (selectedParty ? '   |   Party: ' + selectedParty : '') + (selectedMode ? '   |   Mode: ' + selectedMode : '');
+    var y = pdfHeader(doc, 'Cash Book', subtitle);
+    pdfTable(doc, y, null, [
+      {header:'Date',key:'date',w:1},{header:'Name of Client',key:'name',w:1.8},{header:'Address',key:'address',w:1.6},
+      {header:'Mobile',key:'mobile',w:1.1},{header:'Amount Received',key:'amount',w:1.1,align:'right'},{header:'Mode',key:'mode',w:1}
+    ], rows);
+    pdfFooterAndSave(doc, 'Shivkrupa_Cash_Book.pdf');
+  }
+
+  async function downloadExpensesPDF(){
+    var from = document.getElementById('expenses-from').value, to = document.getElementById('expenses-to').value;
+    var selected = document.getElementById('expenses-particulars').value;
+    var rows = currentRows.expenses.map(function(r){
+      return {date:fmtDate(r.date), sr:r.sr_no, particulars:r.particulars, details:r.details, amount:formatINR_PDF(r.amount)};
+    });
+    var doc = newPDF();
+    var y = pdfHeader(doc, 'Expenses Book', rangeLabel(from, to) + (selected ? '   |   Particulars: ' + selected : ''));
+    pdfTable(doc, y, null, [
+      {header:'Date',key:'date',w:1},{header:'Sr.No',key:'sr',w:0.6},{header:'Particulars',key:'particulars',w:1.3},
+      {header:'Details',key:'details',w:1.8},{header:'Amount',key:'amount',w:1,align:'right'}
+    ], rows);
+    pdfFooterAndSave(doc, 'Shivkrupa_Expenses_Book.pdf');
+  }
+
+  async function downloadProductionPDF(){
+    var from = document.getElementById('production-from').value, to = document.getElementById('production-to').value;
+    var rows = currentRows.production.map(function(r){
+      return {date:fmtDate(r.date), bt:r.brick_type, pallets:r.pallets, bricks:r.bricks.toLocaleString('en-IN'), by:r.entered_by};
+    });
+    var doc = newPDF();
+    var y = pdfHeader(doc, 'Production Log', rangeLabel(from, to));
+    pdfTable(doc, y, null, [
+      {header:'Date',key:'date',w:1},{header:'Brick Type',key:'bt',w:0.9},{header:'Pallets',key:'pallets',w:0.8,align:'right'},
+      {header:'Bricks Produced',key:'bricks',w:1.1,align:'right'},{header:'Entered By',key:'by',w:1.5}
+    ], rows);
+    pdfFooterAndSave(doc, 'Shivkrupa_Production_Log.pdf');
+  }
+
+  async function downloadRawMaterialsPDF(){
+    var from = document.getElementById('raw-from').value, to = document.getElementById('raw-to').value;
+    var selected = document.getElementById('raw-material-filter').value;
+    var rows = currentRows.raw.map(function(r){
+      return {date:fmtDate(r.date), sr:r.sr_no, material:r.material, qty:r.quantity.toLocaleString('en-IN'), unit:r.unit, cost:formatINR_PDF(r.cost), supplier:r.supplier};
+    });
+    var doc = newPDF();
+    var y = pdfHeader(doc, 'Raw Materials Book', rangeLabel(from, to) + (selected ? '   |   Material: ' + selected : ''));
+    pdfTable(doc, y, null, [
+      {header:'Date',key:'date',w:0.9},{header:'Sr.No',key:'sr',w:0.5},{header:'Material',key:'material',w:1.1},
+      {header:'Qty',key:'qty',w:0.7,align:'right'},{header:'Unit',key:'unit',w:0.7},
+      {header:'Cost',key:'cost',w:0.9,align:'right'},{header:'Supplied By',key:'supplier',w:1.3}
+    ], rows);
+    pdfFooterAndSave(doc, 'Shivkrupa_Raw_Materials.pdf');
+  }
+
+  async function downloadStockPDF(){
+    var from = document.getElementById('stock-from').value, to = document.getElementById('stock-to').value;
+    var brickType = document.getElementById('stock-brick-type').value || '4 inch';
+    var trend = await apiRequest('GET', '/stock/trend' + qs({date_from: from, date_to: to, brick_type: brickType}));
+    var current = await apiRequest('GET', '/stock');
+    var rows = trend.map(function(r){ return {date: fmtDate(r.date), closing: r.closing.toLocaleString('en-IN') + ' bricks'}; });
+    var doc = newPDF();
+    var y = pdfHeader(doc, 'Stock Report', rangeLabel(from, to) + '   |   ' + brickType);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(0,0,0);
+    current.forEach(function(s){
+      doc.text(s.brick_type + ': ' + s.current_stock.toLocaleString('en-IN') + ' bricks (Produced ' + s.total_produced.toLocaleString('en-IN') + ' - Sold ' + s.total_sold.toLocaleString('en-IN') + ')', MARGIN, y);
+      y += 14;
+    });
+    y += 8;
+    pdfTable(doc, y, 'Stock Trend (' + brickType + ')', [{header:'Date',key:'date',w:1},{header:'Closing Stock',key:'closing',w:1.2,align:'right'}], rows);
+    pdfFooterAndSave(doc, 'Shivkrupa_Stock_Report.pdf');
+  }
+
+  async function downloadReportsPDF(){
+    var m = await apiRequest('GET', '/reports/monthly');
+    var rows = [
+      {metric:'Sales This Month', value: formatINR_PDF(m.sales_this_month)},
+      {metric:'Bricks Produced', value: m.bricks_produced.toLocaleString('en-IN')},
+      {metric:'Bricks Sold', value: m.bricks_sold.toLocaleString('en-IN')},
+      {metric:'Cash Received', value: formatINR_PDF(m.cash_received)},
+      {metric:'Outstanding (Credit)', value: formatINR_PDF(m.outstanding_credit)},
+      {metric:'Labor & Fuel Expenses', value: formatINR_PDF(m.labor_fuel_expenses)},
+      {metric:'Raw Material Cost', value: formatINR_PDF(m.raw_material_cost)},
+    ];
+    var doc = newPDF();
+    var y = pdfHeader(doc, 'Monthly Report', m.period);
+    pdfTable(doc, y, null, [{header:'Metric',key:'metric',w:2},{header:'Value',key:'value',w:1,align:'right'}], rows);
+    pdfFooterAndSave(doc, 'Shivkrupa_Monthly_Report.pdf');
+  }
+
+  async function downloadDashboardPDF(){
+    var d = await apiRequest('GET', '/reports/dashboard');
+    var stock = await apiRequest('GET', '/stock');
+    var doc = newPDF();
+    var y = pdfHeader(doc, 'Dashboard Snapshot', fmtDate(todayIso()));
+    var stockRows = stock.map(function(s){ return {metric: 'Current Stock (' + s.brick_type + ')', value: s.current_stock.toLocaleString('en-IN') + ' bricks'}; });
+    y = pdfTable(doc, y, "Today's Snapshot", [{header:'Metric',key:'metric',w:2},{header:'Value',key:'value',w:1,align:'right'}], [
+      {metric:'Bricks Produced Today', value: d.bricks_produced_today.toLocaleString('en-IN')},
+      {metric:'Bricks Sold Today', value: d.bricks_sold_today.toLocaleString('en-IN')},
+      {metric:'Cash Received Today', value: formatINR_PDF(d.cash_received_today)},
+    ].concat(stockRows).concat([{metric:'Expenses Today', value: formatINR_PDF(d.expenses_today)}]));
+    var sales = await apiRequest('GET', '/sales');
+    y = pdfTable(doc, y, 'Recent Sales', [{header:'Date',key:'date',w:1},{header:'Party',key:'party',w:1.6},{header:'Type',key:'bt',w:0.8},{header:'Qty',key:'qty',w:1,align:'right'},{header:'Amount',key:'amount',w:1,align:'right'}],
+      sales.slice(0,3).map(function(r){ return {date:shortDate(r.date), party:r.party_name, bt:r.brick_type, qty:r.quantity.toLocaleString('en-IN'), amount:formatINR_PDF(r.total_value)}; }));
+    var prod = await apiRequest('GET', '/production');
+    pdfTable(doc, y, 'Recent Production', [{header:'Date',key:'date',w:1},{header:'Type',key:'bt',w:0.8},{header:'Pallets',key:'pallets',w:1,align:'right'},{header:'Bricks',key:'bricks',w:1,align:'right'}],
+      prod.slice(0,3).map(function(r){ return {date:shortDate(r.date), bt:r.brick_type, pallets:r.pallets, bricks:r.bricks.toLocaleString('en-IN')}; }));
+    pdfFooterAndSave(doc, 'Shivkrupa_Dashboard_Snapshot.pdf');
+  }
+
+  async function downloadLedgerSummaryPDF(){
+    var summary = await apiRequest('GET', '/ledger/summary' + qs(ledgerRangeInputs()));
+    var rows = summary.map(function(row){ return {party: row.party, balance: row.balance > 0 ? formatINR_PDF(row.balance) + ' due' : 'Settled'}; });
+    var doc = newPDF();
+    var y = pdfHeader(doc, 'Ledger Summary - All Parties', rangeLabel(document.getElementById('ledger-from').value, document.getElementById('ledger-to').value));
+    pdfTable(doc, y, null, [{header:'Party',key:'party',w:2},{header:'Balance',key:'balance',w:1,align:'right'}], rows);
+    pdfFooterAndSave(doc, 'Shivkrupa_Ledger_Summary.pdf');
+  }
+
+  async function downloadLedgerStatementPDF(party){
+    if (!party) return;
+    var txns = await apiRequest('GET', '/ledger/' + encodeURIComponent(party));
+    var rows = txns.map(function(t){
+      return {date:fmtDate(t.date), particulars:t.particulars, debit:t.debit?formatINR_PDF(t.debit):'-', credit:t.credit?formatINR_PDF(t.credit):'-', balance:formatINR_PDF(t.balance)};
+    });
+    var doc = newPDF();
+    var y = pdfHeader(doc, 'Ledger Statement - ' + party, rangeLabel(document.getElementById('ledger-from').value, document.getElementById('ledger-to').value));
+    pdfTable(doc, y, null, [
+      {header:'Date',key:'date',w:0.9},{header:'Particulars',key:'particulars',w:2},
+      {header:'Debit',key:'debit',w:1,align:'right'},{header:'Credit',key:'credit',w:1,align:'right'},{header:'Balance',key:'balance',w:1,align:'right'}
+    ], rows);
+    pdfFooterAndSave(doc, 'Shivkrupa_Ledger_' + party.replace(/\s+/g,'_') + '.pdf');
+  }
+
+  // ---------- init ----------
+  setupOtpBoxes('desktop');
+  setupOtpBoxes('mobile');
+  document.getElementById('desktop-login-password').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ attemptLogin('desktop'); } });
+  document.getElementById('mobile-login-password').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ attemptLogin('mobile'); } });
+</script>
+
+</body>
+</html>
