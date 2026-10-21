@@ -93,6 +93,12 @@ class Production(Base):
     entered_by = Column(String, default="")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    @property
+    def average(self):
+        """Bricks per cement bag -- calculated on the fly, never stored (see calc.py)."""
+        from .calc import average_for
+        return average_for(self.brick_type, self.pallets, self.cement_bags)
+
 
 class RawMaterial(Base):
     __tablename__ = "raw_materials"

@@ -515,7 +515,7 @@
           <button class="btn primary" style="margin-left:auto;" onclick="openAddModal('production')">+ New Production Entry</button>
         </div>
         <div class="panel"><div class="table-wrap"><table>
-          <tr><th>Date</th><th>Brick Type</th><th class="num">Pallets</th><th class="num">Bricks Produced</th><th class="num">Cement Bags</th><th>Entered By</th><th></th></tr>
+          <tr><th>Date</th><th>Brick Type</th><th class="num">Pallets</th><th class="num">Bricks Produced</th><th class="num">Cement Bags</th><th class="num">Average</th><th>Entered By</th><th></th></tr>
           <tbody id="production-rows"></tbody>
         </table></div></div>
       </section>
@@ -1449,25 +1449,31 @@
     try {
       rows = await apiRequest('GET', '/production' + qs({date_from: from, date_to: to, brick_type: selectedBt}));
     } catch (e) {
-      document.getElementById('production-rows').innerHTML = '<tr><td colspan="7" class="muted-dash">' + e.message + '</td></tr>';
+      document.getElementById('production-rows').innerHTML = '<tr><td colspan="8" class="muted-dash">' + e.message + '</td></tr>';
       return;
     }
     currentRows.production = rows;
 
     document.getElementById('production-rows').innerHTML = rows.map(function(r){
-      return '<tr><td>' + fmtDate(r.date) + '</td><td>' + r.brick_type + '</td><td class="num">' + r.pallets + '</td><td class="num">' + r.bricks.toLocaleString('en-IN') + '</td><td class="num">' + (r.cement_bags || 0).toLocaleString('en-IN') + '</td><td>' + r.entered_by + '</td>' +
+      return '<tr><td>' + fmtDate(r.date) + '</td><td>' + r.brick_type + '</td><td class="num">' + r.pallets + '</td><td class="num">' + r.bricks.toLocaleString('en-IN') + '</td><td class="num">' + (r.cement_bags || 0).toLocaleString('en-IN') + '</td><td class="num">' + fmtAverage(r.average) + '</td><td>' + r.entered_by + '</td>' +
         '<td><div class="row-actions">' +
           '<button class="icon-btn" title="Edit" onclick="openEditModal(\'production\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
           '<button class="icon-btn danger" title="Delete" onclick="deleteEntry(\'production\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
         '</div></td></tr>';
-    }).join('') || '<tr><td colspan="7" class="muted-dash">No entries in this range</td></tr>';
+    }).join('') || '<tr><td colspan="8" class="muted-dash">No entries in this range</td></tr>';
 
     renderMobileProduction();
   }
 
+  // Average = bricks per cement bag, worked out by the server (never typed in).
+  // It is null when no cement bags were recorded, so show a dash instead of a number.
+  function fmtAverage(v, empty){
+    return v == null ? (empty || '\u2014') : Number(v).toLocaleString('en-IN', {maximumFractionDigits: 2});
+  }
+
   function renderMobileProduction(){
     document.getElementById('m-production-rows').innerHTML = currentRows.production.map(function(r){
-      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + shortDate(r.date) + ' \u00b7 ' + r.brick_type + '</div><div class="m-row-sub">' + r.pallets + ' pallets \u00b7 ' + (r.cement_bags || 0) + ' cement bags \u00b7 ' + r.entered_by + '</div></div>' +
+      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + shortDate(r.date) + ' \u00b7 ' + r.brick_type + '</div><div class="m-row-sub">' + r.pallets + ' pallets \u00b7 ' + (r.cement_bags || 0) + ' cement bags' + (r.average == null ? '' : ' \u00b7 avg ' + fmtAverage(r.average)) + ' \u00b7 ' + r.entered_by + '</div></div>' +
         '<div class="m-row-right"><div class="m-row-amount clr-kiln">' + r.bricks.toLocaleString('en-IN') + ' bricks</div><div class="m-row-actions">' +
         '<button class="icon-btn small" onclick="openEditModal(\'production\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
         '<button class="icon-btn small danger" onclick="deleteEntry(\'production\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
@@ -1867,7 +1873,7 @@
       doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(0,0,0);
       columns.forEach(function(c,i){
         var w = usable * ((c.w || 1) / totalW);
-        if (c.align === 'right'){ doc.text(c.header, colX[i] + w - 4, y, {align:'right'}); }
+        if (c.align === 'right'){ doc.text(c.header, colX[i] + w - (c.pad || 4), y, {align:'right'}); }
         else { doc.text(c.header, colX[i] + 3, y); }
       });
       y += 6; doc.setDrawColor(0,0,0); doc.setLineWidth(0.75); doc.line(MARGIN, y, pw - MARGIN, y); y += 13;
@@ -1879,7 +1885,7 @@
       columns.forEach(function(c,i){
         var w = usable * ((c.w || 1) / totalW);
         var val = (r[c.key] === undefined || r[c.key] === null || r[c.key] === '') ? '-' : String(r[c.key]);
-        if (c.align === 'right'){ doc.text(val, colX[i] + w - 4, y, {align:'right'}); }
+        if (c.align === 'right'){ doc.text(val, colX[i] + w - (c.pad || 4), y, {align:'right'}); }
         else { doc.text(fitText(doc, val, w - 6), colX[i] + 3, y); }
       });
       y += 7; doc.setDrawColor(190,190,190); doc.setLineWidth(0.4); doc.line(MARGIN, y, pw - MARGIN, y); doc.setDrawColor(0,0,0); y += 13;
@@ -1954,13 +1960,13 @@
   async function downloadProductionPDF(){
     var from = document.getElementById('production-from').value, to = document.getElementById('production-to').value;
     var rows = currentRows.production.map(function(r){
-      return {date:fmtDate(r.date), bt:r.brick_type, pallets:r.pallets, bricks:r.bricks.toLocaleString('en-IN'), cement:(r.cement_bags || 0).toLocaleString('en-IN'), by:r.entered_by};
+      return {date:fmtDate(r.date), bt:r.brick_type, pallets:r.pallets, bricks:r.bricks.toLocaleString('en-IN'), cement:(r.cement_bags || 0).toLocaleString('en-IN'), avg:fmtAverage(r.average, '-'), by:r.entered_by};
     });
     var doc = newPDF();
     var y = pdfHeader(doc, 'Production Log', rangeLabel(from, to));
     pdfTable(doc, y, null, [
       {header:'Date',key:'date',w:1},{header:'Brick Type',key:'bt',w:0.9},{header:'Pallets',key:'pallets',w:0.8,align:'right'},
-      {header:'Bricks Produced',key:'bricks',w:1.1,align:'right'},{header:'Cement Bags',key:'cement',w:0.9,align:'right'},{header:'Entered By',key:'by',w:1.5}
+      {header:'Bricks Produced',key:'bricks',w:1.1,align:'right'},{header:'Cement Bags',key:'cement',w:0.9,align:'right'},{header:'Average',key:'avg',w:0.8,align:'right',pad:14},{header:'Entered By',key:'by',w:1.3}
     ], rows);
     pdfFooterAndSave(doc, 'Shivkrupa_Production_Log.pdf');
   }

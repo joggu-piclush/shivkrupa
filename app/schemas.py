@@ -104,6 +104,7 @@ class ProductionOut(BaseModel):
     pallets: float
     bricks: float
     cement_bags: float = 0
+    average: Optional[float] = None  # calculated by the server, never sent by the client
     entered_by: str
     model_config = {"from_attributes": True}
 
