@@ -22,6 +22,28 @@ from .routers import auth_router, sales, cash, expenses, production, raw_materia
 
 models.Base.metadata.create_all(bind=engine)
 
+
+def _add_missing_columns():
+    """create_all() creates NEW tables but never alters tables that already exist.
+    When a feature adds a column to a table that already holds real data, it is
+    listed here and added on startup. Additive only: nothing is dropped, renamed
+    or rewritten, so existing entries are untouched. Safe to run on every start."""
+    from sqlalchemy import inspect, text
+    wanted = [
+        # (table, column, SQL type + default)
+        ("production", "cement_bags", "FLOAT NOT NULL DEFAULT 0"),
+    ]
+    insp = inspect(engine)
+    tables = set(insp.get_table_names())
+    with engine.begin() as conn:
+        for table, column, ddl in wanted:
+            if table in tables and column not in {c["name"] for c in insp.get_columns(table)}:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
+                print(f"[startup] Added column {table}.{column}")
+
+
+_add_missing_columns()
+
 app = FastAPI(title="Shivkrupa Enterprises API")
 
 # Which websites may call this API. Set ALLOWED_ORIGINS on the server to your

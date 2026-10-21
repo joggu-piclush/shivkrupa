@@ -93,6 +93,7 @@ class ProductionCreate(BaseModel):
     date: Date
     brick_type: str = "4 inch"  # "4 inch" | "6 inch"
     pallets: float
+    cement_bags: float = 0
     entered_by: str
 
 
@@ -102,6 +103,7 @@ class ProductionOut(BaseModel):
     brick_type: str
     pallets: float
     bricks: float
+    cement_bags: float = 0
     entered_by: str
     model_config = {"from_attributes": True}
 
@@ -111,7 +113,7 @@ class RawMaterialCreate(BaseModel):
     date: Date
     material: str
     quantity: float
-    unit: str
+    unit: str = ""  # no longer used by the app; kept so older entries still load
     cost: float
     supplier: str = ""
 
@@ -126,6 +128,7 @@ class RawMaterialOut(RawMaterialCreate):
 class LedgerTxn(BaseModel):
     date: Date
     particulars: str
+    address: str = ""  # delivery site / address for this entry
     debit: float
     credit: float
     balance: float

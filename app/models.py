@@ -89,6 +89,7 @@ class Production(Base):
     brick_type = Column(String, nullable=False, default="4 inch")  # "4 inch" | "6 inch"
     pallets = Column(Float, nullable=False)
     bricks = Column(Float, nullable=False)  # pallets * pallet size FOR THIS brick_type
+    cement_bags = Column(Float, nullable=False, default=0, server_default="0")  # cement bags used for this batch
     entered_by = Column(String, default="")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -100,7 +101,9 @@ class RawMaterial(Base):
     sr_no = Column(String, nullable=False)
     material = Column(String, nullable=False, index=True)  # e.g. "Cement", "Sand", "Coal"
     quantity = Column(Float, nullable=False)
-    unit = Column(String, nullable=False)  # e.g. "Truck", "Bag"
+    # No longer asked for in the app (quantity is just a number now). Column is kept so
+    # older entries that already have a unit keep it; new entries store "".
+    unit = Column(String, nullable=False, default="", server_default="")
     cost = Column(Float, nullable=False)
     supplier = Column(String, default="")  # who supplied it -- own suggestion list, not the Party Directory
     created_by = Column(String, default="")

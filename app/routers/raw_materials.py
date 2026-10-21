@@ -68,7 +68,7 @@ def create_raw_material(
     user: models.User = Depends(get_current_user),
 ):
     sr_no = str(db.query(models.RawMaterial).count() + 1).zfill(3)
-    entry = models.RawMaterial(**payload.model_dump(), sr_no=sr_no, created_by=user.username)
+    entry = models.RawMaterial(**payload.model_dump(exclude_unset=True), sr_no=sr_no, created_by=user.username)
     db.add(entry)
     db.commit()
     db.refresh(entry)
@@ -85,7 +85,8 @@ def update_raw_material(
     entry = db.query(models.RawMaterial).filter(models.RawMaterial.id == entry_id).first()
     if not entry:
         raise HTTPException(status_code=404, detail="Raw material entry not found.")
-    for field, value in payload.model_dump().items():
+    # exclude_unset: the app no longer sends "unit", so editing an older entry must not wipe it
+    for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(entry, field, value)
     db.commit()
     db.refresh(entry)

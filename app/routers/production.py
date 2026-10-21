@@ -62,7 +62,8 @@ def create_production(
 ):
     entry = models.Production(
         date=payload.date, brick_type=payload.brick_type, pallets=payload.pallets,
-        bricks=bricks_for(payload.brick_type, payload.pallets), entered_by=payload.entered_by,
+        bricks=bricks_for(payload.brick_type, payload.pallets), cement_bags=payload.cement_bags,
+        entered_by=payload.entered_by,
     )
     db.add(entry)
     db.commit()
@@ -84,6 +85,7 @@ def update_production(
     entry.brick_type = payload.brick_type
     entry.pallets = payload.pallets
     entry.bricks = bricks_for(payload.brick_type, payload.pallets)
+    entry.cement_bags = payload.cement_bags
     entry.entered_by = payload.entered_by
     db.commit()
     db.refresh(entry)

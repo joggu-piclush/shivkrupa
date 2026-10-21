@@ -91,6 +91,9 @@
   .stat-value.clay{color:var(--clay);}
   .stat-value.kiln{color:var(--kiln);}
   .stat-value.sage{color:var(--sage);}
+  .stat-split{display:flex; gap:20px; flex-wrap:wrap;}
+  .stat-split .stat-value{font-size:20px;}
+  .stat-sublabel{font-size:11px; color:var(--ink-soft); margin-bottom:2px;}
   .stat-sub{font-size:11.5px; color:var(--ink-soft); margin-top:4px; font-family:var(--font-num);}
 
   /* ---------- Two column dashboard ---------- */
@@ -199,6 +202,9 @@
   .m-stat-card{border:1px solid var(--line); border-radius:12px; padding:12px 14px; background:var(--paper-raised);}
   .m-stat-label{font-size:11px; color:var(--ink-soft); margin-bottom:5px;}
   .m-stat-value{font-family:var(--font-num); font-size:19px; font-weight:600;}
+  .m-split-row{display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-top:2px;}
+  .m-split-row .m-stat-value{font-size:16px;}
+  .m-split-label{font-size:11px; color:var(--ink-soft);}
   .m-section-title{font-size:12px; font-weight:600; color:var(--ink-soft); margin:18px 2px 8px 2px;}
   .m-screen-head{display:flex; align-items:center; justify-content:space-between; margin:2px 0 14px 0;}
   .m-screen-title{font-size:16px; font-weight:600;}
@@ -379,9 +385,15 @@
       <section class="view active" id="dashboard">
         <div class="stat-strip">
           <div class="stat"><div class="stat-label">Bricks Produced Today</div><div class="stat-value kiln" id="dash-bricks-produced">0</div></div>
-          <div class="stat"><div class="stat-label">Bricks Sold Today</div><div class="stat-value clay" id="dash-bricks-sold">0</div></div>
+          <div class="stat"><div class="stat-label">Bricks Sold Today</div><div class="stat-split">
+            <div><div class="stat-sublabel">4 inch</div><div class="stat-value clay" id="dash-sold-4inch">0</div></div>
+            <div><div class="stat-sublabel">6 inch</div><div class="stat-value clay" id="dash-sold-6inch">0</div></div>
+          </div></div>
           <div class="stat"><div class="stat-label">Cash Received Today</div><div class="stat-value sage" id="dash-cash-received">₹0</div></div>
-          <div class="stat"><div class="stat-label">Current Stock</div><div class="stat-value" id="dash-current-stock">0</div><div class="stat-sub">bricks, as of today</div></div>
+          <div class="stat"><div class="stat-label">Current Stock</div><div class="stat-split">
+            <div><div class="stat-sublabel">4 inch</div><div class="stat-value" id="dash-stock-4inch">0</div></div>
+            <div><div class="stat-sublabel">6 inch</div><div class="stat-value" id="dash-stock-6inch">0</div></div>
+          </div><div class="stat-sub">bricks, as of today</div></div>
           <div class="stat"><div class="stat-label">Expenses Today</div><div class="stat-value" id="dash-expenses" style="color:var(--clay-deep)">₹0</div></div>
         </div>
         <div class="cols">
@@ -480,7 +492,7 @@
           </div>
           <p class="view-desc" id="ledger-detail-range"></p>
           <div class="panel"><div class="table-wrap"><table>
-            <tr><th>Date</th><th>Particulars</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr>
+            <tr><th>Date</th><th>Particulars</th><th>Site / Address</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr>
             <tbody id="ledger-detail-rows"></tbody>
           </table></div></div>
           <div style="margin-top:14px;"><button class="btn pdf" onclick="downloadLedgerStatementPDF(currentLedgerParty)">⬇ Download Statement PDF</button></div>
@@ -503,7 +515,7 @@
           <button class="btn primary" style="margin-left:auto;" onclick="openAddModal('production')">+ New Production Entry</button>
         </div>
         <div class="panel"><div class="table-wrap"><table>
-          <tr><th>Date</th><th>Brick Type</th><th class="num">Pallets</th><th class="num">Bricks Produced</th><th>Entered By</th><th></th></tr>
+          <tr><th>Date</th><th>Brick Type</th><th class="num">Pallets</th><th class="num">Bricks Produced</th><th class="num">Cement Bags</th><th>Entered By</th><th></th></tr>
           <tbody id="production-rows"></tbody>
         </table></div></div>
       </section>
@@ -520,7 +532,7 @@
           <button class="btn primary" style="margin-left:auto;" onclick="openAddModal('raw')">+ New Raw Material Entry</button>
         </div>
         <div class="panel"><div class="table-wrap"><table>
-          <tr><th>Date</th><th>Sr.No</th><th>Material</th><th class="num">Quantity</th><th>Unit</th><th class="num">Cost</th><th>Supplied By</th><th></th></tr>
+          <tr><th>Date</th><th>Sr.No</th><th>Material</th><th class="num">Quantity</th><th class="num">Cost</th><th>Supplied By</th><th></th></tr>
           <tbody id="raw-rows"></tbody>
         </table></div></div>
       </section>
@@ -616,9 +628,13 @@
           <div class="m-greeting-title">Today's Snapshot</div>
           <div class="m-stat-grid">
             <div class="m-stat-card"><div class="m-stat-label">Bricks Produced</div><div class="m-stat-value clr-kiln" id="m-dash-produced">0</div></div>
-            <div class="m-stat-card"><div class="m-stat-label">Bricks Sold</div><div class="m-stat-value clr-clay" id="m-dash-sold">0</div></div>
+            <div class="m-stat-card"><div class="m-stat-label">Bricks Sold</div>
+              <div class="m-split-row"><span class="m-split-label">4 inch</span><span class="m-stat-value clr-clay" id="m-dash-sold-4inch">0</span></div>
+              <div class="m-split-row"><span class="m-split-label">6 inch</span><span class="m-stat-value clr-clay" id="m-dash-sold-6inch">0</span></div></div>
             <div class="m-stat-card"><div class="m-stat-label">Cash Received</div><div class="m-stat-value clr-sage" id="m-dash-cash">₹0</div></div>
-            <div class="m-stat-card"><div class="m-stat-label">Current Stock</div><div class="m-stat-value" id="m-dash-stock">0</div></div>
+            <div class="m-stat-card"><div class="m-stat-label">Current Stock</div>
+              <div class="m-split-row"><span class="m-split-label">4 inch</span><span class="m-stat-value" id="m-dash-stock-4inch">0</span></div>
+              <div class="m-split-row"><span class="m-split-label">6 inch</span><span class="m-stat-value" id="m-dash-stock-6inch">0</span></div></div>
           </div>
           <div class="m-section-title">Recent Sales</div>
           <div id="m-dash-recent-sales"></div>
@@ -778,6 +794,7 @@
       <div class="form-field"><label>Brick Type</label><select id="production-form-brick-type" onchange="updateProductionFormBricks()"><option value="4 inch">4 inch</option><option value="6 inch">6 inch</option></select></div>
       <div class="form-field"><label>Pallets Produced</label><input type="number" id="production-form-pallets" oninput="updateProductionFormBricks()"></div>
       <div class="form-field"><label>Bricks Produced</label><input type="text" id="production-form-bricks" disabled></div>
+      <div class="form-field"><label>Cement Bags Used</label><input type="number" id="production-form-cement-bags" min="0" placeholder="Bags for this batch"></div>
       <div class="form-field"><label>Entered By</label><input type="text" id="production-form-by" placeholder="e.g. Ramesh (Supervisor)"></div>
     </div>
     <div class="entry-form-actions">
@@ -794,7 +811,6 @@
       <div class="form-field"><label>Date</label><input type="date" id="raw-form-date"></div>
       <div class="form-field"><label>Material</label><input type="text" id="raw-form-material" list="raw-material-list" placeholder="Cement, Sand, Coal..."></div>
       <div class="form-field"><label>Quantity</label><input type="number" id="raw-form-quantity"></div>
-      <div class="form-field"><label>Unit</label><input type="text" id="raw-form-unit" list="raw-unit-list" placeholder="Truck, Bag..."></div>
       <div class="form-field"><label>Cost (Rs.)</label><input type="number" id="raw-form-cost"></div>
       <div class="form-field"><label>Supplied By</label><input type="text" id="raw-form-supplier" list="raw-supplier-list" placeholder="Supplier name"></div>
     </div>
@@ -810,7 +826,6 @@
 <datalist id="expense-particulars-list"></datalist>
 <datalist id="expense-details-list"></datalist>
 <datalist id="raw-material-list"></datalist>
-<datalist id="raw-unit-list"></datalist>
 <datalist id="raw-supplier-list"></datalist>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -985,6 +1000,10 @@
       btn.classList.add('active');
       document.getElementById(btn.dataset.view).classList.add('active');
       document.getElementById('view-heading').textContent = btn.querySelector('.label').textContent;
+      // Dashboard / Stock / Ledger / Reports are worked out from the other books,
+      // so reload them every time they are opened -- otherwise they show old
+      // numbers after a sale or production entry was added.
+      if (['dashboard', 'stock', 'ledger', 'reports'].indexOf(btn.dataset.view) !== -1) refreshDerivedViews();
     });
   });
 
@@ -1005,6 +1024,7 @@
       document.querySelectorAll('.m-view').forEach(function(v){ v.classList.remove('active'); });
       btn.classList.add('active');
       document.getElementById(btn.dataset.mview).classList.add('active');
+      if (btn.dataset.mview === 'm-dashboard' || btn.dataset.mview === 'm-more') refreshDerivedViews();
     });
   });
 
@@ -1038,10 +1058,6 @@
       var materials = await apiRequest('GET', '/raw-materials/materials');
       document.getElementById('raw-material-list').innerHTML =
         materials.map(function(m){ return '<option value="' + m + '"></option>'; }).join('');
-
-      var units = await apiRequest('GET', '/raw-materials/units');
-      document.getElementById('raw-unit-list').innerHTML =
-        units.map(function(u){ return '<option value="' + u + '"></option>'; }).join('');
 
       var suppliers = await apiRequest('GET', '/raw-materials/suppliers');
       document.getElementById('raw-supplier-list').innerHTML =
@@ -1133,13 +1149,13 @@
       document.getElementById('production-form-date').value = row.date;
       document.getElementById('production-form-brick-type').value = row.brick_type;
       document.getElementById('production-form-pallets').value = row.pallets;
+      document.getElementById('production-form-cement-bags').value = row.cement_bags || 0;
       document.getElementById('production-form-by').value = row.entered_by;
       updateProductionFormBricks();
     } else if (name === 'raw'){
       document.getElementById('raw-form-date').value = row.date;
       document.getElementById('raw-form-material').value = row.material;
       document.getElementById('raw-form-quantity').value = row.quantity;
-      document.getElementById('raw-form-unit').value = row.unit;
       document.getElementById('raw-form-cost').value = row.cost;
       document.getElementById('raw-form-supplier').value = row.supplier;
     }
@@ -1433,25 +1449,25 @@
     try {
       rows = await apiRequest('GET', '/production' + qs({date_from: from, date_to: to, brick_type: selectedBt}));
     } catch (e) {
-      document.getElementById('production-rows').innerHTML = '<tr><td colspan="6" class="muted-dash">' + e.message + '</td></tr>';
+      document.getElementById('production-rows').innerHTML = '<tr><td colspan="7" class="muted-dash">' + e.message + '</td></tr>';
       return;
     }
     currentRows.production = rows;
 
     document.getElementById('production-rows').innerHTML = rows.map(function(r){
-      return '<tr><td>' + fmtDate(r.date) + '</td><td>' + r.brick_type + '</td><td class="num">' + r.pallets + '</td><td class="num">' + r.bricks.toLocaleString('en-IN') + '</td><td>' + r.entered_by + '</td>' +
+      return '<tr><td>' + fmtDate(r.date) + '</td><td>' + r.brick_type + '</td><td class="num">' + r.pallets + '</td><td class="num">' + r.bricks.toLocaleString('en-IN') + '</td><td class="num">' + (r.cement_bags || 0).toLocaleString('en-IN') + '</td><td>' + r.entered_by + '</td>' +
         '<td><div class="row-actions">' +
           '<button class="icon-btn" title="Edit" onclick="openEditModal(\'production\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
           '<button class="icon-btn danger" title="Delete" onclick="deleteEntry(\'production\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
         '</div></td></tr>';
-    }).join('') || '<tr><td colspan="6" class="muted-dash">No entries in this range</td></tr>';
+    }).join('') || '<tr><td colspan="7" class="muted-dash">No entries in this range</td></tr>';
 
     renderMobileProduction();
   }
 
   function renderMobileProduction(){
     document.getElementById('m-production-rows').innerHTML = currentRows.production.map(function(r){
-      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + shortDate(r.date) + ' \u00b7 ' + r.brick_type + '</div><div class="m-row-sub">' + r.pallets + ' pallets \u00b7 ' + r.entered_by + '</div></div>' +
+      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + shortDate(r.date) + ' \u00b7 ' + r.brick_type + '</div><div class="m-row-sub">' + r.pallets + ' pallets \u00b7 ' + (r.cement_bags || 0) + ' cement bags \u00b7 ' + r.entered_by + '</div></div>' +
         '<div class="m-row-right"><div class="m-row-amount clr-kiln">' + r.bricks.toLocaleString('en-IN') + ' bricks</div><div class="m-row-actions">' +
         '<button class="icon-btn small" onclick="openEditModal(\'production\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
         '<button class="icon-btn small danger" onclick="deleteEntry(\'production\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
@@ -1464,10 +1480,11 @@
       date: document.getElementById('production-form-date').value,
       brick_type: document.getElementById('production-form-brick-type').value,
       pallets: parseFloat(document.getElementById('production-form-pallets').value),
+      cement_bags: parseFloat(document.getElementById('production-form-cement-bags').value),
       entered_by: document.getElementById('production-form-by').value.trim(),
     };
-    if (!payload.date || isNaN(payload.pallets) || !payload.entered_by){
-      alert('Date, pallets produced and entered-by are required.'); return;
+    if (!payload.date || isNaN(payload.pallets) || isNaN(payload.cement_bags) || !payload.entered_by){
+      alert('Date, pallets produced, cement bags used (0 if none) and entered-by are required.'); return;
     }
     try {
       if (editing.production != null){
@@ -1502,19 +1519,19 @@
     try {
       rows = await apiRequest('GET', '/raw-materials' + qs({date_from: from, date_to: to, material: selected}));
     } catch (e) {
-      document.getElementById('raw-rows').innerHTML = '<tr><td colspan="8" class="muted-dash">' + e.message + '</td></tr>';
+      document.getElementById('raw-rows').innerHTML = '<tr><td colspan="7" class="muted-dash">' + e.message + '</td></tr>';
       return;
     }
     currentRows.raw = rows;
 
     document.getElementById('raw-rows').innerHTML = rows.map(function(r){
       return '<tr><td>' + fmtDate(r.date) + '</td><td>' + r.sr_no + '</td><td>' + r.material + '</td>' +
-        '<td class="num">' + r.quantity.toLocaleString('en-IN') + '</td><td>' + r.unit + '</td><td class="num">' + formatINR(r.cost) + '</td><td>' + r.supplier + '</td>' +
+        '<td class="num">' + r.quantity.toLocaleString('en-IN') + '</td><td class="num">' + formatINR(r.cost) + '</td><td>' + r.supplier + '</td>' +
         '<td><div class="row-actions">' +
           '<button class="icon-btn" title="Edit" onclick="openEditModal(\'raw\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
           '<button class="icon-btn danger" title="Delete" onclick="deleteEntry(\'raw\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
         '</div></td></tr>';
-    }).join('') || '<tr><td colspan="8" class="muted-dash">No entries in this range</td></tr>';
+    }).join('') || '<tr><td colspan="7" class="muted-dash">No entries in this range</td></tr>';
 
     renderMobileRaw();
   }
@@ -1523,7 +1540,7 @@
     var el = document.getElementById('m-raw-rows');
     if (!el) return;
     el.innerHTML = currentRows.raw.map(function(r){
-      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + r.material + '</div><div class="m-row-sub">' + shortDate(r.date) + ' \u00b7 ' + r.quantity + ' ' + r.unit + ' \u00b7 ' + r.supplier + '</div></div>' +
+      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + r.material + '</div><div class="m-row-sub">' + shortDate(r.date) + ' \u00b7 Qty ' + r.quantity + ' \u00b7 ' + r.supplier + '</div></div>' +
         '<div class="m-row-right"><div class="m-row-amount">' + formatINR(r.cost) + '</div><div class="m-row-actions">' +
         '<button class="icon-btn small" onclick="openEditModal(\'raw\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
         '<button class="icon-btn small danger" onclick="deleteEntry(\'raw\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
@@ -1536,12 +1553,11 @@
       date: document.getElementById('raw-form-date').value,
       material: document.getElementById('raw-form-material').value.trim(),
       quantity: parseFloat(document.getElementById('raw-form-quantity').value),
-      unit: document.getElementById('raw-form-unit').value.trim(),
       cost: parseFloat(document.getElementById('raw-form-cost').value),
       supplier: document.getElementById('raw-form-supplier').value.trim(),
     };
-    if (!payload.date || !payload.material || isNaN(payload.quantity) || !payload.unit || isNaN(payload.cost)){
-      alert('Date, material, quantity, unit and cost are required.'); return;
+    if (!payload.date || !payload.material || isNaN(payload.quantity) || isNaN(payload.cost)){
+      alert('Date, material, quantity and cost are required.'); return;
     }
     try {
       if (editing.raw != null){
@@ -1648,11 +1664,12 @@
     try {
       txns = await apiRequest('GET', '/ledger/' + encodeURIComponent(party) + qs(range));
     } catch (e) {
-      document.getElementById('ledger-detail-rows').innerHTML = '<tr><td colspan="5" class="muted-dash">' + e.message + '</td></tr>';
+      document.getElementById('ledger-detail-rows').innerHTML = '<tr><td colspan="6" class="muted-dash">' + e.message + '</td></tr>';
       return;
     }
     document.getElementById('ledger-detail-rows').innerHTML = txns.map(function(t){
       return '<tr><td>' + fmtDate(t.date) + '</td><td>' + t.particulars + '</td>' +
+        '<td>' + (t.address ? escHtml(t.address) : '<span class="muted-dash">\u2014</span>') + '</td>' +
         '<td class="num">' + (t.debit ? formatINR(t.debit) : '<span class="muted-dash">\u2014</span>') + '</td>' +
         '<td class="num">' + (t.credit ? formatINR(t.credit) : '<span class="muted-dash">\u2014</span>') + '</td>' +
         '<td class="num">' + formatINR(t.balance) + '</td></tr>';
@@ -1682,7 +1699,9 @@
     }
     document.getElementById('m-ledger-detail-rows').innerHTML = txns.map(function(t){
       var typeLabel = t.debit ? ('Debit ' + formatINR(t.debit)) : ('Credit ' + formatINR(t.credit));
-      return '<div class="m-list-row"><div><div class="m-row-title">' + t.particulars + '</div><div class="m-row-sub">' + fmtDate(t.date) + ' \u00b7 ' + typeLabel + '</div></div>' +
+      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + t.particulars + '</div>' +
+        (t.address ? '<div class="m-row-sub">Site: ' + escHtml(t.address) + '</div>' : '') +
+        '<div class="m-row-sub">' + fmtDate(t.date) + ' \u00b7 ' + typeLabel + '</div></div>' +
         '<div class="m-row-amount" style="color:' + (t.balance > 0 ? 'var(--clay)' : 'var(--sage)') + '">Bal ' + formatINR(t.balance) + '</div></div>';
     }).join('');
     var finalBalance = txns.length ? txns[txns.length - 1].balance : 0;
@@ -1705,18 +1724,26 @@
     try {
       var d = await apiRequest('GET', '/reports/dashboard');
       document.getElementById('dash-bricks-produced').textContent = d.bricks_produced_today.toLocaleString('en-IN');
-      document.getElementById('dash-bricks-sold').textContent = d.bricks_sold_today.toLocaleString('en-IN');
+      var soldBy = d.bricks_sold_today_by_type || {};
+      ['4 inch', '6 inch'].forEach(function(bt){
+        var key = bt === '4 inch' ? '4inch' : '6inch', n = (soldBy[bt] || 0).toLocaleString('en-IN');
+        document.getElementById('dash-sold-' + key).textContent = n;
+        document.getElementById('m-dash-sold-' + key).textContent = n;
+      });
       document.getElementById('dash-cash-received').textContent = formatINR(d.cash_received_today);
       document.getElementById('dash-expenses').textContent = formatINR(d.expenses_today);
       var stock = await apiRequest('GET', '/stock');
-      var total = stock.reduce(function(s,r){ return s + r.current_stock; }, 0);
-      document.getElementById('dash-current-stock').textContent = total.toLocaleString('en-IN');
+      var stockBy = {};
+      stock.forEach(function(r){ stockBy[r.brick_type] = r.current_stock; });
+      ['4 inch', '6 inch'].forEach(function(bt){
+        var key = bt === '4 inch' ? '4inch' : '6inch', n = (stockBy[bt] || 0).toLocaleString('en-IN');
+        document.getElementById('dash-stock-' + key).textContent = n;
+        document.getElementById('m-dash-stock-' + key).textContent = n;
+      });
 
       // Mirror the same numbers on the phone layout's Home tab
       document.getElementById('m-dash-produced').textContent = d.bricks_produced_today.toLocaleString('en-IN');
-      document.getElementById('m-dash-sold').textContent = d.bricks_sold_today.toLocaleString('en-IN');
       document.getElementById('m-dash-cash').textContent = formatINR(d.cash_received_today);
-      document.getElementById('m-dash-stock').textContent = total.toLocaleString('en-IN');
     } catch (e) { console.error(e.message); }
 
     try {
@@ -1778,6 +1805,10 @@
     if (module === 'raw') return renderRawMaterialsTable();
   }
 
+  function refreshDerivedViews(){
+    return Promise.all([renderStockChart(), renderLedgerGrid(), renderDashboard(), renderReports()]).catch(function(){});
+  }
+
   async function refreshEverything(){
     await refreshDatalists();
     var today = todayIso(), monthStart = firstOfMonthIso();
@@ -1815,6 +1846,12 @@
     return 98;
   }
 
+  function fitText(doc, text, maxW){
+    if (doc.getTextWidth(text) <= maxW) return text;
+    while (text.length > 1 && doc.getTextWidth(text + '...') > maxW){ text = text.slice(0, -1); }
+    return text + '...';
+  }
+
   function pdfTable(doc, y, sectionTitle, columns, rows){
     var pw = doc.internal.pageSize.getWidth(), ph = doc.internal.pageSize.getHeight();
     var usable = pw - MARGIN * 2;
@@ -1843,7 +1880,7 @@
         var w = usable * ((c.w || 1) / totalW);
         var val = (r[c.key] === undefined || r[c.key] === null || r[c.key] === '') ? '-' : String(r[c.key]);
         if (c.align === 'right'){ doc.text(val, colX[i] + w - 4, y, {align:'right'}); }
-        else { doc.text(val, colX[i] + 3, y); }
+        else { doc.text(fitText(doc, val, w - 6), colX[i] + 3, y); }
       });
       y += 7; doc.setDrawColor(190,190,190); doc.setLineWidth(0.4); doc.line(MARGIN, y, pw - MARGIN, y); doc.setDrawColor(0,0,0); y += 13;
     });
@@ -1917,13 +1954,13 @@
   async function downloadProductionPDF(){
     var from = document.getElementById('production-from').value, to = document.getElementById('production-to').value;
     var rows = currentRows.production.map(function(r){
-      return {date:fmtDate(r.date), bt:r.brick_type, pallets:r.pallets, bricks:r.bricks.toLocaleString('en-IN'), by:r.entered_by};
+      return {date:fmtDate(r.date), bt:r.brick_type, pallets:r.pallets, bricks:r.bricks.toLocaleString('en-IN'), cement:(r.cement_bags || 0).toLocaleString('en-IN'), by:r.entered_by};
     });
     var doc = newPDF();
     var y = pdfHeader(doc, 'Production Log', rangeLabel(from, to));
     pdfTable(doc, y, null, [
       {header:'Date',key:'date',w:1},{header:'Brick Type',key:'bt',w:0.9},{header:'Pallets',key:'pallets',w:0.8,align:'right'},
-      {header:'Bricks Produced',key:'bricks',w:1.1,align:'right'},{header:'Entered By',key:'by',w:1.5}
+      {header:'Bricks Produced',key:'bricks',w:1.1,align:'right'},{header:'Cement Bags',key:'cement',w:0.9,align:'right'},{header:'Entered By',key:'by',w:1.5}
     ], rows);
     pdfFooterAndSave(doc, 'Shivkrupa_Production_Log.pdf');
   }
@@ -1932,13 +1969,13 @@
     var from = document.getElementById('raw-from').value, to = document.getElementById('raw-to').value;
     var selected = document.getElementById('raw-material-filter').value;
     var rows = currentRows.raw.map(function(r){
-      return {date:fmtDate(r.date), sr:r.sr_no, material:r.material, qty:r.quantity.toLocaleString('en-IN'), unit:r.unit, cost:formatINR_PDF(r.cost), supplier:r.supplier};
+      return {date:fmtDate(r.date), sr:r.sr_no, material:r.material, qty:r.quantity.toLocaleString('en-IN'), cost:formatINR_PDF(r.cost), supplier:r.supplier};
     });
     var doc = newPDF();
     var y = pdfHeader(doc, 'Raw Materials Book', rangeLabel(from, to) + (selected ? '   |   Material: ' + selected : ''));
     pdfTable(doc, y, null, [
       {header:'Date',key:'date',w:0.9},{header:'Sr.No',key:'sr',w:0.5},{header:'Material',key:'material',w:1.1},
-      {header:'Qty',key:'qty',w:0.7,align:'right'},{header:'Unit',key:'unit',w:0.7},
+      {header:'Qty',key:'qty',w:0.7,align:'right'},
       {header:'Cost',key:'cost',w:0.9,align:'right'},{header:'Supplied By',key:'supplier',w:1.3}
     ], rows);
     pdfFooterAndSave(doc, 'Shivkrupa_Raw_Materials.pdf');
@@ -1987,7 +2024,8 @@
     var stockRows = stock.map(function(s){ return {metric: 'Current Stock (' + s.brick_type + ')', value: s.current_stock.toLocaleString('en-IN') + ' bricks'}; });
     y = pdfTable(doc, y, "Today's Snapshot", [{header:'Metric',key:'metric',w:2},{header:'Value',key:'value',w:1,align:'right'}], [
       {metric:'Bricks Produced Today', value: d.bricks_produced_today.toLocaleString('en-IN')},
-      {metric:'Bricks Sold Today', value: d.bricks_sold_today.toLocaleString('en-IN')},
+      {metric:'Bricks Sold Today (4 inch)', value: ((d.bricks_sold_today_by_type || {})['4 inch'] || 0).toLocaleString('en-IN')},
+      {metric:'Bricks Sold Today (6 inch)', value: ((d.bricks_sold_today_by_type || {})['6 inch'] || 0).toLocaleString('en-IN')},
       {metric:'Cash Received Today', value: formatINR_PDF(d.cash_received_today)},
     ].concat(stockRows).concat([{metric:'Expenses Today', value: formatINR_PDF(d.expenses_today)}]));
     var sales = await apiRequest('GET', '/sales');
@@ -2012,12 +2050,12 @@
     if (!party) return;
     var txns = await apiRequest('GET', '/ledger/' + encodeURIComponent(party));
     var rows = txns.map(function(t){
-      return {date:fmtDate(t.date), particulars:t.particulars, debit:t.debit?formatINR_PDF(t.debit):'-', credit:t.credit?formatINR_PDF(t.credit):'-', balance:formatINR_PDF(t.balance)};
+      return {date:fmtDate(t.date), particulars:t.particulars, address:t.address || '', debit:t.debit?formatINR_PDF(t.debit):'-', credit:t.credit?formatINR_PDF(t.credit):'-', balance:formatINR_PDF(t.balance)};
     });
-    var doc = newPDF();
+    var doc = newPDF('landscape');
     var y = pdfHeader(doc, 'Ledger Statement - ' + party, rangeLabel(document.getElementById('ledger-from').value, document.getElementById('ledger-to').value));
     pdfTable(doc, y, null, [
-      {header:'Date',key:'date',w:0.9},{header:'Particulars',key:'particulars',w:2},
+      {header:'Date',key:'date',w:0.9},{header:'Particulars',key:'particulars',w:2},{header:'Site / Address',key:'address',w:2.2},
       {header:'Debit',key:'debit',w:1,align:'right'},{header:'Credit',key:'credit',w:1,align:'right'},{header:'Balance',key:'balance',w:1,align:'right'}
     ], rows);
     pdfFooterAndSave(doc, 'Shivkrupa_Ledger_' + party.replace(/\s+/g,'_') + '.pdf');

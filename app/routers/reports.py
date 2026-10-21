@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..database import get_db
 from ..deps import get_current_user
+from .production import BRICK_TYPES
 
 router = APIRouter(tags=["reports"])
 
@@ -39,11 +40,13 @@ def _party_ledger_txns(db: Session, party: str, date_from=None, date_to=None):
     for s in sales_q.all():
         rows.append({
             "date": s.date, "particulars": f"{s.quantity:g} bricks taken ({s.brick_type})",
+            "address": s.address or "",
             "debit": s.total_value, "credit": 0.0, "_seq": (s.date, 0, s.id),
         })
     for c in cash_q.all():
         rows.append({
             "date": c.date, "particulars": f"Payment received ({c.mode})",
+            "address": c.address or "",
             "debit": 0.0, "credit": c.amount, "_seq": (c.date, 1, c.id),
         })
     rows.sort(key=lambda r: r["_seq"])
@@ -51,7 +54,7 @@ def _party_ledger_txns(db: Session, party: str, date_from=None, date_to=None):
     out = []
     for r in rows:
         running += r["debit"] - r["credit"]
-        out.append({"date": r["date"], "particulars": r["particulars"],
+        out.append({"date": r["date"], "particulars": r["particulars"], "address": r["address"],
                      "debit": r["debit"], "credit": r["credit"], "balance": running})
     return out
 
@@ -132,10 +135,18 @@ def dashboard(db: Session = Depends(get_db), user: models.User = Depends(get_cur
             q = q.filter(getattr(model, k) == v)
         return sum(getattr(row, col) for row in q.all())
 
+    def sum_by_brick_type(model, col):
+        totals = {bt: 0.0 for bt in BRICK_TYPES}
+        for row in db.query(model).filter(model.date == today).all():
+            totals[row.brick_type] = totals.get(row.brick_type, 0.0) + getattr(row, col)
+        return totals
+
     return {
         "date": today.isoformat(),
         "bricks_produced_today": sum_col(models.Production, "bricks"),
+        "bricks_produced_today_by_type": sum_by_brick_type(models.Production, "bricks"),
         "bricks_sold_today": sum_col(models.Sale, "quantity"),
+        "bricks_sold_today_by_type": sum_by_brick_type(models.Sale, "quantity"),
         "cash_received_today": sum_col(models.CashEntry, "amount"),
         "expenses_today": sum_col(models.Expense, "amount"),
     }
