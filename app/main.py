@@ -86,6 +86,19 @@ def seed_default_admin():
             db.commit()
             print(f"[startup] Seeded first login -> username={username!r}. "
                   f"(Password is not printed; it comes from SEED_ADMIN_PASSWORD.)")
+        else:
+            # The mobile number that receives the first login's OTP can be changed later by
+            # changing SEED_ADMIN_MOBILE on the server: it is applied on the next start.
+            # (The seed above only runs once, on an empty database, so without this the
+            # number could never be changed after the first start.)
+            username = os.environ.get("SEED_ADMIN_USERNAME", "").strip()
+            mobile = os.environ.get("SEED_ADMIN_MOBILE", "").strip()
+            if username and mobile:
+                user = db.query(models.User).filter(models.User.username == username).first()
+                if user and user.mobile != mobile:
+                    user.mobile = mobile
+                    db.commit()
+                    print(f"[startup] Login {username!r} will now get its OTP on the number ending {mobile[-4:]}.")
     finally:
         db.close()
 
