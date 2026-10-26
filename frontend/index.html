@@ -332,7 +332,7 @@
       <div id="desktop-otp-screen" style="display:none;">
         <div class="auth-brand">
           <div class="name">Verify It's You</div>
-          <div class="sub">Code sent to +91 98XXX XXXXX</div>
+          <div class="sub">Enter the code we sent you</div>
         </div>
         <div class="otp-boxes" id="desktop-otp-boxes">
           <input type="text" maxlength="1" inputmode="numeric" class="otp-box">
@@ -603,7 +603,7 @@
         <div id="mobile-otp-screen" style="display:none;">
           <div class="auth-brand">
             <div class="name" style="font-size:16px;">Verify It's You</div>
-            <div class="sub">Code sent to +91 98XXX XXXXX</div>
+            <div class="sub">Enter the code we sent you</div>
           </div>
           <div class="otp-boxes" id="mobile-otp-boxes">
             <input type="text" maxlength="1" inputmode="numeric" class="otp-box small">
@@ -905,17 +905,21 @@
     try {
       var data = await apiRequest('POST', '/auth/login', {username: id, password: pass});
       pendingOtpToken[context] = data.otp_token;
-      showOtpScreen(context);
+      showOtpScreen(context, data);
     } catch (e) {
       errorEl.textContent = e.message;
     }
   }
 
-  function showOtpScreen(context){
+  function showOtpScreen(context, data){
     document.getElementById(context + '-login-screen').style.display = 'none';
     document.getElementById(context + '-otp-screen').style.display = 'block';
-    document.getElementById(context + '-otp-hint').textContent =
-      'A verification code was sent to the registered mobile number.';
+    // The server says where the code went (e.g. "Code sent on WhatsApp to your number ending 4461.")
+    // and how many digits it has, so the screen shows the right number of boxes.
+    var sub = document.querySelector('#' + context + '-otp-screen .auth-brand .sub');
+    if (sub && data && data.message) sub.textContent = data.message;
+    document.getElementById(context + '-otp-hint').textContent = 'Didn\'t get it? Tap Resend Code.';
+    buildOtpBoxes(context, (data && data.otp_length) || 4);
     clearOtpBoxes(context);
     var firstBox = document.querySelector('#' + context + '-otp-boxes .otp-box');
     if (firstBox) firstBox.focus();
@@ -927,9 +931,30 @@
   function clearOtpBoxes(context){
     document.querySelectorAll('#' + context + '-otp-boxes .otp-box').forEach(function(b){ b.value = ''; });
   }
+  function buildOtpBoxes(context, n){
+    var wrap = document.getElementById(context + '-otp-boxes');
+    wrap.innerHTML = '';
+    for (var i = 0; i < n; i++){
+      var inp = document.createElement('input');
+      inp.type = 'text'; inp.maxLength = 1; inp.setAttribute('inputmode', 'numeric');
+      inp.setAttribute('autocomplete', i === 0 ? 'one-time-code' : 'off');
+      inp.className = 'otp-box' + (context === 'mobile' ? ' small' : '');
+      wrap.appendChild(inp);
+    }
+    setupOtpBoxes(context);
+  }
   function setupOtpBoxes(context){
     var boxes = document.querySelectorAll('#' + context + '-otp-boxes .otp-box');
     boxes.forEach(function(box, i){
+      // Pasting the whole code (WhatsApp's "Copy code" button) fills every box.
+      box.addEventListener('paste', function(e){
+        var text = ((e.clipboardData || window.clipboardData).getData('text') || '').replace(/\D/g, '');
+        if (!text) return;
+        e.preventDefault();
+        for (var k = 0; k < boxes.length; k++){ boxes[k].value = text.charAt(k) || ''; }
+        boxes[Math.min(text.length, boxes.length) - 1].focus();
+        if (text.length >= boxes.length){ attemptVerifyOtp(context); }
+      });
       box.addEventListener('input', function(){
         box.value = box.value.replace(/[^0-9]/g, '').slice(0, 1);
         if (box.value && i < boxes.length - 1){ boxes[i + 1].focus(); }
@@ -952,6 +977,9 @@
       await unlockApp();
     } catch (e) {
       errorEl.textContent = e.message;
+      clearOtpBoxes(context);
+      var first = document.querySelector('#' + context + '-otp-boxes .otp-box');
+      if (first) first.focus();
     }
   }
 
@@ -962,7 +990,10 @@
       pendingOtpToken[context] = data.otp_token;
       clearOtpBoxes(context);
       errorEl.textContent = '';
-      document.getElementById(context + '-otp-hint').textContent = 'A new code has been sent.';
+      var sub2 = document.querySelector('#' + context + '-otp-screen .auth-brand .sub');
+      if (sub2 && data.message) sub2.textContent = data.message;
+      document.getElementById(context + '-otp-hint').textContent = 'Use the newest code only.';
+      buildOtpBoxes(context, data.otp_length || 4);
     } catch (e) {
       errorEl.textContent = e.message;
     }
@@ -2068,8 +2099,8 @@
   }
 
   // ---------- init ----------
-  setupOtpBoxes('desktop');
-  setupOtpBoxes('mobile');
+  buildOtpBoxes('desktop', 4);
+  buildOtpBoxes('mobile', 4);
   document.getElementById('desktop-login-password').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ attemptLogin('desktop'); } });
   document.getElementById('mobile-login-password').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ attemptLogin('mobile'); } });
 </script>

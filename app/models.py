@@ -124,4 +124,5 @@ class OtpCode(Base):
     code = Column(String, nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False)
     consumed = Column(Boolean, default=False)
+    attempts = Column(Integer, nullable=False, default=0, server_default="0")  # wrong guesses so far
     created_at = Column(DateTime(timezone=True), server_default=func.now())

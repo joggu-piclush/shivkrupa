@@ -20,6 +20,7 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     message: str
     otp_token: str  # short-lived reference to this login attempt; NOT an access token
+    otp_length: int = 4  # how many digits the code has, so the login screen can show that many boxes
 
 
 class VerifyOtpRequest(BaseModel):

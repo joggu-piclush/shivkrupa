@@ -32,6 +32,7 @@ def _add_missing_columns():
     wanted = [
         # (table, column, SQL type + default)
         ("production", "cement_bags", "FLOAT NOT NULL DEFAULT 0"),
+        ("otp_codes", "attempts", "INTEGER NOT NULL DEFAULT 0"),
     ]
     insp = inspect(engine)
     tables = set(insp.get_table_names())
