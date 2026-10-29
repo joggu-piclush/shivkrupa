@@ -58,6 +58,9 @@ app.add_middleware(
     allow_origins=_origins or ["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    # Let the browser remember the "may I?" check for 2 hours (the most Chrome keeps), so repeat visits to the
+    # same screens skip it. (FastAPI's own default is only 10 minutes.)
+    max_age=7200,
 )
 
 app.include_router(auth_router.router)

@@ -879,6 +879,10 @@
     return data;
   }
 
+  // Starts a GET straight away and returns its promise. A failure is still raised where the result is
+  // awaited; this only lets several independent requests travel at the same time.
+  function early(path){ var pr = apiRequest('GET', path); pr.catch(function(){}); return pr; }
+
   function qs(params){
     var parts = [];
     Object.keys(params).forEach(function(k){
@@ -1102,33 +1106,35 @@
 
   async function refreshDatalists(){
     try {
-      var parties = await apiRequest('GET', '/parties');
+      // Ask for all seven lists at once (one round trip, not seven in a row), then fill them in the same order.
+      var pParties = early('/parties'), pModes = early('/cash/modes'), pParticulars = early('/expenses/particulars'), pDetails = early('/expenses/details'), pMaterials = early('/raw-materials/materials'), pSuppliers = early('/raw-materials/suppliers'), pBrickTypes = early('/production/brick-types');
+      var parties = await pParties;
       partyDirectory = {};
       parties.forEach(function(p){ partyDirectory[p.name] = {address: p.address, mobile: p.mobile}; });
       document.getElementById('party-directory-list').innerHTML =
         parties.map(function(p){ return '<option value="' + p.name + '"></option>'; }).join('');
 
-      var modes = await apiRequest('GET', '/cash/modes');
+      var modes = await pModes;
       document.getElementById('payment-mode-list').innerHTML =
         modes.map(function(m){ return '<option value="' + m + '"></option>'; }).join('');
 
-      var particulars = await apiRequest('GET', '/expenses/particulars');
+      var particulars = await pParticulars;
       document.getElementById('expense-particulars-list').innerHTML =
         particulars.map(function(p){ return '<option value="' + p + '"></option>'; }).join('');
 
-      var details = await apiRequest('GET', '/expenses/details');
+      var details = await pDetails;
       document.getElementById('expense-details-list').innerHTML =
         details.map(function(d){ return '<option value="' + d + '"></option>'; }).join('');
 
-      var materials = await apiRequest('GET', '/raw-materials/materials');
+      var materials = await pMaterials;
       document.getElementById('raw-material-list').innerHTML =
         materials.map(function(m){ return '<option value="' + m + '"></option>'; }).join('');
 
-      var suppliers = await apiRequest('GET', '/raw-materials/suppliers');
+      var suppliers = await pSuppliers;
       document.getElementById('raw-supplier-list').innerHTML =
         suppliers.map(function(s){ return '<option value="' + s + '"></option>'; }).join('');
 
-      BRICK_TYPES = await apiRequest('GET', '/production/brick-types');
+      BRICK_TYPES = await pBrickTypes;
     } catch (e) {
       console.error('Could not refresh autocomplete lists:', e.message);
     }
@@ -1353,8 +1359,11 @@
 
     partySelect.innerHTML = distinctFilterOptions(Object.keys(partyDirectory).sort(), 'All Parties');
     partySelect.value = currentParty;
+    var pModes = early('/cash/modes');
+    // With no mode chosen (the usual case) the entries request does not depend on the list of modes, so ask for both together.
+    var pRows = currentMode ? null : early('/cash' + qs({date_from: from, date_to: to, party: partySelect.value, mode: ''}));
     try {
-      var modes = await apiRequest('GET', '/cash/modes');
+      var modes = await pModes;
       modeSelect.innerHTML = distinctFilterOptions(modes, 'All Modes');
       modeSelect.value = currentMode;
     } catch (e) { /* non-fatal */ }
@@ -1362,7 +1371,7 @@
     var selectedParty = partySelect.value, selectedMode = modeSelect.value;
     var rows;
     try {
-      rows = await apiRequest('GET', '/cash' + qs({date_from: from, date_to: to, party: selectedParty, mode: selectedMode}));
+      rows = await (pRows || apiRequest('GET', '/cash' + qs({date_from: from, date_to: to, party: selectedParty, mode: selectedMode})));
     } catch (e) {
       document.getElementById('cash-rows').innerHTML = '<tr><td colspan="7" class="muted-dash">' + e.message + '</td></tr>';
       return;
@@ -1428,8 +1437,11 @@
     var to = document.getElementById('expenses-to').value;
     var select = document.getElementById('expenses-particulars');
     var currentValue = select.value;
+    var pPart = early('/expenses/particulars');
+    // With no filter chosen (the usual case) the entries request does not depend on the list, so ask for both together.
+    var pRows = currentValue ? null : early('/expenses' + qs({date_from: from, date_to: to, particulars: ''}));
     try {
-      var particulars = await apiRequest('GET', '/expenses/particulars');
+      var particulars = await pPart;
       select.innerHTML = distinctFilterOptions(particulars, 'All');
       select.value = currentValue;
     } catch (e) { /* non-fatal */ }
@@ -1437,7 +1449,7 @@
 
     var rows;
     try {
-      rows = await apiRequest('GET', '/expenses' + qs({date_from: from, date_to: to, particulars: selected}));
+      rows = await (pRows || apiRequest('GET', '/expenses' + qs({date_from: from, date_to: to, particulars: selected})));
     } catch (e) {
       document.getElementById('expenses-rows').innerHTML = '<tr><td colspan="6" class="muted-dash">' + e.message + '</td></tr>';
       return;
@@ -1579,8 +1591,11 @@
     var to = document.getElementById('raw-to').value;
     var select = document.getElementById('raw-material-filter');
     var currentValue = select.value;
+    var pMat = early('/raw-materials/materials');
+    // With no filter chosen (the usual case) the entries request does not depend on the list, so ask for both together.
+    var pRows = currentValue ? null : early('/raw-materials' + qs({date_from: from, date_to: to, material: ''}));
     try {
-      var materials = await apiRequest('GET', '/raw-materials/materials');
+      var materials = await pMat;
       select.innerHTML = distinctFilterOptions(materials, 'All Materials');
       select.value = currentValue;
     } catch (e) { /* non-fatal */ }
@@ -1588,7 +1603,7 @@
 
     var rows;
     try {
-      rows = await apiRequest('GET', '/raw-materials' + qs({date_from: from, date_to: to, material: selected}));
+      rows = await (pRows || apiRequest('GET', '/raw-materials' + qs({date_from: from, date_to: to, material: selected})));
     } catch (e) {
       document.getElementById('raw-rows').innerHTML = '<tr><td colspan="7" class="muted-dash">' + e.message + '</td></tr>';
       return;
@@ -1648,8 +1663,10 @@
   // STOCK -- split per brick type
   // =========================================================================
   async function renderStockChart(){
+    var pStock = early('/stock');
+    var pTrend = early('/stock/trend' + qs({date_from: document.getElementById('stock-from').value, date_to: document.getElementById('stock-to').value, brick_type: document.getElementById('stock-brick-type').value || '4 inch'}));
     try {
-      var stockRows = await apiRequest('GET', '/stock');
+      var stockRows = await pStock;
       stockRows.forEach(function(s){
         var suffix = s.brick_type === '4 inch' ? '4inch' : '6inch';
         var currentEl = document.getElementById('stock-current-' + suffix);
@@ -1666,7 +1683,7 @@
     var wrap = document.getElementById('stock-chart');
     var rows;
     try {
-      rows = await apiRequest('GET', '/stock/trend' + qs({date_from: from, date_to: to, brick_type: brickType}));
+      rows = await pTrend;
     } catch (e) {
       wrap.innerHTML = '<div class="muted-dash" style="padding:20px;">' + e.message + '</div>';
       return;
@@ -1792,8 +1809,9 @@
   // DASHBOARD + REPORTS
   // =========================================================================
   async function renderDashboard(){
+    var pDash = early('/reports/dashboard'), pStockD = early('/stock'), pSales = early('/sales'), pProd = early('/production');
     try {
-      var d = await apiRequest('GET', '/reports/dashboard');
+      var d = await pDash;
       document.getElementById('dash-bricks-produced').textContent = d.bricks_produced_today.toLocaleString('en-IN');
       var soldBy = d.bricks_sold_today_by_type || {};
       ['4 inch', '6 inch'].forEach(function(bt){
@@ -1803,7 +1821,7 @@
       });
       document.getElementById('dash-cash-received').textContent = formatINR(d.cash_received_today);
       document.getElementById('dash-expenses').textContent = formatINR(d.expenses_today);
-      var stock = await apiRequest('GET', '/stock');
+      var stock = await pStockD;
       var stockBy = {};
       stock.forEach(function(r){ stockBy[r.brick_type] = r.current_stock; });
       ['4 inch', '6 inch'].forEach(function(bt){
@@ -1818,14 +1836,14 @@
     } catch (e) { console.error(e.message); }
 
     try {
-      var sales = await apiRequest('GET', '/sales');
+      var sales = await pSales;
       document.getElementById('m-dash-recent-sales').innerHTML = sales.slice(0,3).map(function(r){
         return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + escHtml(r.party_name) + '</div><div class="m-row-sub">' + shortDate(r.date) + ' · ' + escHtml(r.brick_type) + ' · ' + r.quantity.toLocaleString('en-IN') + ' bricks</div></div><div class="m-row-amount">' + formatINR(r.total_value) + '</div></div>';
       }).join('') || '<div class="m-row-sub" style="padding:8px 2px;">No sales yet</div>';
       document.getElementById('dash-recent-sales').innerHTML = sales.slice(0,3).map(function(r){
         return '<tr><td>' + shortDate(r.date) + '</td><td>' + r.party_name + ' (' + r.brick_type + ')</td><td class="num">' + r.quantity.toLocaleString('en-IN') + '</td><td class="num">' + formatINR(r.total_value) + '</td></tr>';
       }).join('') || '<tr><td colspan="4" class="muted-dash">No sales yet</td></tr>';
-      var prod = await apiRequest('GET', '/production');
+      var prod = await pProd;
       document.getElementById('m-dash-recent-production').innerHTML = prod.slice(0,3).map(function(r){
         return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + shortDate(r.date) + ' · ' + escHtml(r.brick_type) + '</div><div class="m-row-sub">' + r.pallets + ' pallets</div></div><div class="m-row-amount clr-kiln">' + r.bricks.toLocaleString('en-IN') + ' bricks</div></div>';
       }).join('') || '<div class="m-row-sub" style="padding:8px 2px;">No production logged yet</div>';
@@ -1836,8 +1854,9 @@
   }
 
   async function renderReports(){
+    var pMonthly = early('/reports/monthly'), pStockR = early('/stock');
     try {
-      var m = await apiRequest('GET', '/reports/monthly');
+      var m = await pMonthly;
       document.getElementById('rep-period').textContent = m.period;
       document.getElementById('rep-sales').textContent = formatINR(m.sales_this_month);
       document.getElementById('rep-produced').textContent = m.bricks_produced.toLocaleString('en-IN');
@@ -1854,7 +1873,7 @@
     } catch (e) { console.error(e.message); }
 
     try {
-      var stock = await apiRequest('GET', '/stock');
+      var stock = await pStockR;
       stock.forEach(function(s){
         var suffix = s.brick_type === '4 inch' ? '4inch' : '6inch';
         var el = document.getElementById('m-more-stock-' + suffix);
