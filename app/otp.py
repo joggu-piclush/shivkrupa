@@ -88,7 +88,10 @@ def _fast2sms_post(path: str, body: dict) -> dict:
     req = urllib.request.Request(
         base + path,
         data=json.dumps(body).encode("utf-8"),
-        headers={"Authorization": key, "Content-Type": "application/json", "Accept": "application/json"},
+        # Say plainly who is calling. Python's built-in default ("Python-urllib/3.x") is turned away
+        # by Fast2SMS's Cloudflare shield (error 1010), so every code request was refused.
+        headers={"Authorization": key, "Content-Type": "application/json", "Accept": "application/json",
+                 "User-Agent": "ShivkrupaEnterprises-App/1.0 (login OTP)"},
         method="POST",
     )
     try:
