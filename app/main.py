@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import models, auth, otp
 from .database import engine, SessionLocal
-from .routers import auth_router, sales, cash, expenses, production, raw_materials, parties, reports
+from .routers import auth_router, sales, cash, expenses, production, raw_materials, parties, reports, backup
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -68,6 +68,7 @@ app.include_router(production.router)
 app.include_router(raw_materials.router)
 app.include_router(parties.router)
 app.include_router(reports.router)
+app.include_router(backup.router)
 
 
 @app.on_event("startup")

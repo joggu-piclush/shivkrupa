@@ -368,7 +368,7 @@
       <button class="nav-item" data-view="stock"><svg class="icon"><use href="#ic-stock"/></svg><span class="label">Stock</span></button>
       <button class="nav-item" data-view="reports"><svg class="icon"><use href="#ic-report"/></svg><span class="label">Reports</span></button>
     </nav>
-    <div class="sidebar-foot">Built by Piclush Media Agency<button class="sidebar-logout" onclick="lockApp()">Logout</button></div>
+    <div class="sidebar-foot">Built by Piclush Media Agency<button class="sidebar-logout" onclick="downloadBackup(this)">Download backup</button><button class="sidebar-logout" onclick="lockApp()">Logout</button></div>
   </aside>
 
   <div class="main">
@@ -703,7 +703,8 @@
           <div class="m-list-row"><div class="m-row-title">Outstanding credit</div><div class="m-row-amount" id="m-more-outstanding">₹0</div></div>
           <div class="m-list-row"><div class="m-row-title">Raw material cost</div><div class="m-row-amount" id="m-more-raw-cost">₹0</div></div>
           <button class="m-btn-secondary" onclick="downloadReportsPDF()">⬇ Download Monthly Report</button>
-          <button class="m-btn-secondary" onclick="lockApp()" style="margin-top:18px;">Logout</button>
+          <button class="m-btn-secondary" onclick="downloadBackup(this)" style="margin-top:18px;">⬇ Download Data Backup</button>
+          <button class="m-btn-secondary" onclick="lockApp()">Logout</button>
         </div>
 
         <div class="m-view" id="m-ledger-detail">
@@ -1004,6 +1005,39 @@
     document.getElementById('mobile-auth-gate').style.display = 'none';
     document.getElementById('mobile-app-shell').style.display = 'flex';
     await refreshEverything();
+  }
+
+  // Saves a full copy of the business data (the database file) to this device's Downloads.
+  async function downloadBackup(btn){
+    var label = btn ? btn.textContent : '';
+    if (btn){ btn.disabled = true; btn.textContent = 'Preparing backup...'; }
+    try {
+      var res;
+      try {
+        res = await fetch(API_BASE + '/backup/download', {headers: {'Authorization': 'Bearer ' + accessToken}});
+      } catch (networkErr) {
+        throw new Error('Could not reach the server. Please check your internet connection and try again.');
+      }
+      if (!res.ok){
+        var err = null;
+        try { err = await res.json(); } catch(e) { /* empty body */ }
+        throw new Error(err && typeof err.detail === 'string' ? err.detail : ('Request failed (' + res.status + ')'));
+      }
+      var blob = await res.blob();
+      var now = new Date();
+      var two = function(n){ return String(n).padStart(2, '0'); };
+      var name = 'shivkrupa-backup-' + now.getFullYear() + '-' + two(now.getMonth()+1) + '-' + two(now.getDate()) +
+                 '_' + two(now.getHours()) + two(now.getMinutes()) + '.db';
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 10000);
+      if (btn){ btn.textContent = 'Backup saved ✓'; setTimeout(function(){ btn.textContent = label; btn.disabled = false; }, 3000); }
+    } catch (e) {
+      alert('Could not download the backup: ' + e.message);
+      if (btn){ btn.textContent = label; btn.disabled = false; }
+    }
   }
 
   function lockApp(){
