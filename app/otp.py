@@ -117,11 +117,15 @@ def _fast2sms_send(mobile: str) -> None:
         # Log only the provider's own reason (never the key or any code).
         print(f"[otp] Fast2SMS did not send the code: {resp.get('message') or resp or 'no reply'}")
         raise OtpSendError("Fast2SMS refused to send the code.")
+    # Only the provider's own status words are logged -- never the key, the number or any code.
+    print(f"[otp] Fast2SMS accepted the request: message={resp.get('message')!r} request_id={resp.get('request_id')!r} fields={sorted(resp)}")
 
 
 def _fast2sms_check(mobile: str, code: str) -> bool:
     resp = _fast2sms_post("/dev/otp/verify", {"mobile": _clean_mobile(mobile), "otp": code})
-    return resp.get("return") is True
+    ok = resp.get("return") is True
+    print(f"[otp] Fast2SMS code check: {'accepted' if ok else 'rejected'} (message={resp.get('message')!r}, status_code={resp.get('status_code')!r})")
+    return ok
 
 
 # ---------------------------------------------------------------------------
