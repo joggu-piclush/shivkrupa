@@ -7,11 +7,10 @@ Three modes, chosen by the OTP_PROVIDER environment variable on the server:
       The server makes the code itself and prints it in the server log. Nothing
       is sent to anyone. Fine for testing, useless for real staff.
 
-  OTP_PROVIDER=email    -> EMAIL MODE. The server makes the code and emails it through
-      Resend (resend.com, free for this volume). Needs:
-          RESEND_API_KEY     the key from the Resend dashboard (secret: set it only on the server)
-          OTP_EMAIL_FROM     who the email comes from, e.g. "Shivkrupa Enterprises <login@piclush.in>".
-                             Defaults to Resend's test sender, which can only mail the Resend account owner.
+  OTP_PROVIDER=gmail    -> EMAIL MODE, sent from the owner's own Gmail. The server makes the code and
+      has a small Google Apps Script (deployed under the owner's Google account) email it. No third-party
+      email service, no password handed to anyone. Needs:
+          GMAIL_RELAY_URL    the web address of that script (acts like a password: set it only on the server)
           SEED_ADMIN_EMAIL   the address that receives the login's code
       The code is stored only as a hash and is never printed in the log.
 
@@ -69,7 +68,7 @@ def otp_length() -> int:
     return max(4, min(6, n))
 
 
-KNOWN_PROVIDERS = ("", "dev", "email", "fast2sms")
+KNOWN_PROVIDERS = ("", "dev", "gmail", "fast2sms")
 
 
 def provider() -> str:
@@ -88,7 +87,7 @@ def mask_email(email: str) -> str:
 def where_text(user) -> str:
     """Words for the login message, e.g. ' by email to a***@piclush.in' (never shows a whole address or number)."""
     prov = provider()
-    if prov == "email":
+    if prov == "gmail":
         return " by email to " + mask_email(user.email)
     tail = "".join(ch for ch in (user.mobile or "") if ch.isdigit())[-4:]
     channel = " on WhatsApp" if prov == "fast2sms" else ""
@@ -97,7 +96,7 @@ def where_text(user) -> str:
 
 def delivery_note() -> str:
     """Extra advice appended to the login message."""
-    return " If you don't see it, check your Spam folder." if provider() == "email" else ""
+    return " If you don't see it, check your Spam folder." if provider() == "gmail" else ""
 
 
 def generate_otp() -> str:
@@ -167,60 +166,51 @@ def _fast2sms_check(mobile: str, code: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Email (Resend)
+# Email from the owner's own Gmail (no third-party email service)
 # ---------------------------------------------------------------------------
+# The server cannot talk to Gmail directly (Railway's cheaper plans block ordinary email ports, and Google
+# will not hand out the account password). Instead the owner deploys a tiny Google Apps Script web app under
+# his OWN Google account; it sends the email from his Gmail. The server just calls that script's web address
+# (GMAIL_RELAY_URL) with the receiver and the code. The code is made and checked here, never by the script.
 _EMAIL_SHAPE = re.compile(r"^[^@\s,;<>]+@[^@\s,;<>]+\.[^@\s,;<>]+$")
 
 
 def _send_email_code(to_email: str, code: str) -> None:
-    """Emails the code through Resend's web API (Railway's cheaper plans block ordinary email ports,
-    so a web API is the way). Raises OtpSendError with a plain reason; nothing secret goes in the message."""
-    key = os.environ.get("RESEND_API_KEY", "").strip()
-    if not key:
-        raise OtpSendError("RESEND_API_KEY is not set on the server.")
+    """Has the Gmail relay email the code. Raises OtpSendError with a plain reason; the relay address
+    (which acts like a password) and the code are never printed."""
+    url = os.environ.get("GMAIL_RELAY_URL", "").strip()
+    if not url:
+        raise OtpSendError("GMAIL_RELAY_URL is not set on the server.")
     to_email = (to_email or "").strip()
     if not _EMAIL_SHAPE.match(to_email):
         raise OtpSendError("This login has no valid email address (set SEED_ADMIN_EMAIL on the server).")
-    sender = os.environ.get("OTP_EMAIL_FROM", "").strip() or "Shivkrupa Enterprises <onboarding@resend.dev>"
-    base = os.environ.get("RESEND_BASE_URL", "https://api.resend.com").rstrip("/")
-    minutes = OTP_EXPIRE_MINUTES
-    text = (f"Your Shivkrupa Enterprises login code is {code}\n\n"
-            f"It works for {minutes} minutes. Type it on the sign-in screen.\n\n"
-            "If you did not try to sign in, ignore this email. Never share this code with anyone.\n")
-    html = (f'<div style="font-family:Arial,sans-serif;max-width:420px;margin:auto;padding:24px;color:#222">'
-            f'<p style="margin:0 0 8px">Your Shivkrupa Enterprises login code is</p>'
-            f'<p style="font-size:34px;letter-spacing:8px;font-weight:bold;margin:8px 0 16px">{code}</p>'
-            f'<p style="margin:0 0 8px;color:#555">It works for {minutes} minutes. Type it on the sign-in screen.</p>'
-            f'<p style="margin:0;color:#888;font-size:13px">If you did not try to sign in, ignore this email. '
-            f'Never share this code with anyone.</p></div>')
-    body = {"from": sender, "to": [to_email], "subject": "Your Shivkrupa Enterprises login code", "text": text, "html": html}
+    body = {"to": to_email, "code": code, "minutes": OTP_EXPIRE_MINUTES}
     req = urllib.request.Request(
-        base + "/emails",
+        url,
         data=json.dumps(body).encode("utf-8"),
-        # Resend refuses requests without a User-Agent, so say plainly who is calling.
-        headers={"Authorization": "Bearer " + key, "Content-Type": "application/json", "Accept": "application/json",
+        headers={"Content-Type": "application/json", "Accept": "application/json",
                  "User-Agent": "ShivkrupaEnterprises-App/1.0 (login OTP)"},
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        # Apps Script answers a POST with a redirect to the page holding its reply; urllib follows it.
+        with urllib.request.urlopen(req, timeout=25) as resp:
             raw = resp.read()
-    except urllib.error.HTTPError as e:   # Resend answered with an error; its body says why
-        raw = e.read()
-        try:
-            err = json.loads(raw)
-        except ValueError:
-            err = {}
-        reason = (err.get("message") if isinstance(err, dict) else None) or f"HTTP {e.code}"
-        print(f"[otp] Resend did not send the email (HTTP {e.code}): {reason}")
-        raise OtpSendError("Resend refused to send the email.")
+    except urllib.error.HTTPError as e:
+        print(f"[otp] The Gmail relay answered HTTP {e.code}")
+        raise OtpSendError("The Gmail relay refused the request.")
     except Exception as e:                # no connection, timeout...
-        raise OtpSendError(f"Could not reach Resend ({type(e).__name__}).")
+        raise OtpSendError(f"Could not reach the Gmail relay ({type(e).__name__}).")
     try:
         data = json.loads(raw)
     except ValueError:
         data = {}
-    print(f"[otp] Email code handed to Resend for {mask_email(to_email)} (id={data.get('id') if isinstance(data, dict) else None!r})")
+    if not (isinstance(data, dict) and data.get("ok") is True):
+        reason = data.get("error") if isinstance(data, dict) else None
+        print(f"[otp] The Gmail relay did not send the email: "
+              f"{reason or 'unexpected reply (is the script deployed for Anyone, and authorized?)'}")
+        raise OtpSendError("The Gmail relay did not send the email.")
+    print(f"[otp] Email code sent through the Gmail relay to {mask_email(to_email)}")
 
 
 # ---------------------------------------------------------------------------
@@ -237,7 +227,7 @@ def create_otp_for_user(db: Session, user: "models.User") -> str:
     username, mobile = user.username, user.mobile
     prov = provider()
     if prov not in KNOWN_PROVIDERS:               # a typo must never quietly fall back to printing codes in the log
-        raise OtpSendError(f"OTP_PROVIDER has an unknown value ({prov!r}); use email, fast2sms or leave it unset.")
+        raise OtpSendError(f"OTP_PROVIDER has an unknown value ({prov!r}); use gmail, fast2sms or leave it unset.")
     now = datetime.now(timezone.utc)
     window_start = now - timedelta(minutes=WINDOW_MINUTES)
     recent = (db.query(models.OtpCode)
@@ -251,7 +241,7 @@ def create_otp_for_user(db: Session, user: "models.User") -> str:
     if prov == "fast2sms":
         stored = ""                                # Fast2SMS holds the code, not us
         _fast2sms_send(mobile)                     # raises OtpSendError -> nothing stored, nothing cancelled
-    elif prov == "email":
+    elif prov == "gmail":
         code = generate_otp()
         _send_email_code(user.email, code)         # raises OtpSendError -> nothing stored, nothing cancelled
         stored = _hash_code(code)                  # only a hash is kept
