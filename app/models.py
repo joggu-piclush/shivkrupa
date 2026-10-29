@@ -27,6 +27,8 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     mobile = Column(String, nullable=False)
+    # Where the login code goes when OTP_PROVIDER=email. Empty until set (SEED_ADMIN_EMAIL).
+    email = Column(String, nullable=False, default="", server_default="")
     role = Column(String, default="admin")  # admin | office_staff | supervisor
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

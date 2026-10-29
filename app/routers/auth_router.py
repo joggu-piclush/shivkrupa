@@ -19,17 +19,10 @@ from ..database import get_db
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def _where_text(mobile: str) -> str:
-    """e.g. ' on WhatsApp to your number ending 4461' (only the last 4 digits are ever shown)."""
-    tail = "".join(ch for ch in (mobile or "") if ch.isdigit())[-4:]
-    channel = otp.delivery_channel_text()
-    return (" " + channel if channel else "") + (f" to your number ending {tail}" if tail else " to your registered number")
-
-
 def _start_code(db: Session, user: models.User) -> str:
     """Sends a code, turning the OTP module's problems into clear messages for the login screen."""
     try:
-        return otp.create_otp_for_user(db, user.username, user.mobile)
+        return otp.create_otp_for_user(db, user)
     except otp.OtpTooManyRequests:
         raise HTTPException(status_code=429, detail="Too many codes requested. Please wait a few minutes and try again.")
     except otp.OtpSendError as e:
@@ -44,7 +37,7 @@ def login(payload: schemas.LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect ID or password.")
 
     otp_token = _start_code(db, user)
-    return schemas.LoginResponse(message="Code sent" + _where_text(user.mobile) + ".",
+    return schemas.LoginResponse(message="Code sent" + otp.where_text(user) + "." + otp.delivery_note(),
                                  otp_token=otp_token, otp_length=otp.otp_length())
 
 
@@ -74,5 +67,5 @@ def resend_otp(payload: dict, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="Login attempt not found or already completed.")
     new_token = _start_code(db, user)
-    return schemas.LoginResponse(message="A new code has been sent" + _where_text(user.mobile) + ".",
+    return schemas.LoginResponse(message="A new code has been sent" + otp.where_text(user) + "." + otp.delivery_note(),
                                  otp_token=new_token, otp_length=otp.otp_length())

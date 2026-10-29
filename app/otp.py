@@ -1,13 +1,21 @@
 """
 OTP generation, sending and checking.
 
-Two modes, chosen by the OTP_PROVIDER environment variable on the server:
+Three modes, chosen by the OTP_PROVIDER environment variable on the server:
 
-  OTP_PROVIDER not set  -> DEV MODE (the default, and how it has worked so far).
+  OTP_PROVIDER not set (or "dev") -> DEV MODE (the default, and how it has worked so far).
       The server makes the code itself and prints it in the server log. Nothing
       is sent to anyone. Fine for testing, useless for real staff.
 
-  OTP_PROVIDER=fast2sms -> REAL MODE. Fast2SMS makes the code, sends it on WhatsApp
+  OTP_PROVIDER=email    -> EMAIL MODE. The server makes the code and emails it through
+      Resend (resend.com, free for this volume). Needs:
+          RESEND_API_KEY     the key from the Resend dashboard (secret: set it only on the server)
+          OTP_EMAIL_FROM     who the email comes from, e.g. "Shivkrupa Enterprises <login@piclush.in>".
+                             Defaults to Resend's test sender, which can only mail the Resend account owner.
+          SEED_ADMIN_EMAIL   the address that receives the login's code
+      The code is stored only as a hash and is never printed in the log.
+
+  OTP_PROVIDER=fast2sms -> WHATSAPP MODE. Fast2SMS makes the code, sends it on WhatsApp
       (SMS fallback is set up on their side if wanted) and later tells us whether
       the code typed in is right. We never see or store the real code.
       Needs two more variables:
@@ -23,6 +31,8 @@ Safety limits, in both modes:
     stops anyone from running up the WhatsApp bill.
   * Asking for a new code cancels the older one.
 """
+import hashlib
+import hmac
 import json
 import os
 import random
@@ -59,13 +69,35 @@ def otp_length() -> int:
     return max(4, min(6, n))
 
 
+KNOWN_PROVIDERS = ("", "dev", "email", "fast2sms")
+
+
 def provider() -> str:
     return os.environ.get("OTP_PROVIDER", "").strip().lower()
 
 
-def delivery_channel_text() -> str:
-    """Words for the login message, e.g. 'on WhatsApp'."""
-    return "on WhatsApp" if provider() == "fast2sms" else ""
+def mask_email(email: str) -> str:
+    """'aryan@piclush.in' -> 'a***@piclush.in' (the login screen never shows the whole address)."""
+    email = (email or "").strip()
+    if "@" not in email:
+        return "your email"
+    local, _, domain = email.rpartition("@")
+    return (local[:1] + "***") + "@" + domain
+
+
+def where_text(user) -> str:
+    """Words for the login message, e.g. ' by email to a***@piclush.in' (never shows a whole address or number)."""
+    prov = provider()
+    if prov == "email":
+        return " by email to " + mask_email(user.email)
+    tail = "".join(ch for ch in (user.mobile or "") if ch.isdigit())[-4:]
+    channel = " on WhatsApp" if prov == "fast2sms" else ""
+    return channel + (f" to your number ending {tail}" if tail else " to your registered number")
+
+
+def delivery_note() -> str:
+    """Extra advice appended to the login message."""
+    return " If you don't see it, check your Spam folder." if provider() == "email" else ""
 
 
 def generate_otp() -> str:
@@ -75,6 +107,12 @@ def generate_otp() -> str:
 def _clean_mobile(mobile: str) -> str:
     """Fast2SMS wants the plain 10-digit Indian number: drop +91, spaces, dashes."""
     return re.sub(r"\D", "", mobile or "")[-10:]
+
+
+def _hash_code(code: str) -> str:
+    """Emailed codes are kept only as a keyed hash, so a copy of the database never shows a usable code."""
+    key = os.environ.get("SECRET_KEY", "dev-only-insecure-key-change-me").encode("utf-8")
+    return "h$" + hmac.new(key, code.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
 # ---------------------------------------------------------------------------
@@ -129,6 +167,63 @@ def _fast2sms_check(mobile: str, code: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Email (Resend)
+# ---------------------------------------------------------------------------
+_EMAIL_SHAPE = re.compile(r"^[^@\s,;<>]+@[^@\s,;<>]+\.[^@\s,;<>]+$")
+
+
+def _send_email_code(to_email: str, code: str) -> None:
+    """Emails the code through Resend's web API (Railway's cheaper plans block ordinary email ports,
+    so a web API is the way). Raises OtpSendError with a plain reason; nothing secret goes in the message."""
+    key = os.environ.get("RESEND_API_KEY", "").strip()
+    if not key:
+        raise OtpSendError("RESEND_API_KEY is not set on the server.")
+    to_email = (to_email or "").strip()
+    if not _EMAIL_SHAPE.match(to_email):
+        raise OtpSendError("This login has no valid email address (set SEED_ADMIN_EMAIL on the server).")
+    sender = os.environ.get("OTP_EMAIL_FROM", "").strip() or "Shivkrupa Enterprises <onboarding@resend.dev>"
+    base = os.environ.get("RESEND_BASE_URL", "https://api.resend.com").rstrip("/")
+    minutes = OTP_EXPIRE_MINUTES
+    text = (f"Your Shivkrupa Enterprises login code is {code}\n\n"
+            f"It works for {minutes} minutes. Type it on the sign-in screen.\n\n"
+            "If you did not try to sign in, ignore this email. Never share this code with anyone.\n")
+    html = (f'<div style="font-family:Arial,sans-serif;max-width:420px;margin:auto;padding:24px;color:#222">'
+            f'<p style="margin:0 0 8px">Your Shivkrupa Enterprises login code is</p>'
+            f'<p style="font-size:34px;letter-spacing:8px;font-weight:bold;margin:8px 0 16px">{code}</p>'
+            f'<p style="margin:0 0 8px;color:#555">It works for {minutes} minutes. Type it on the sign-in screen.</p>'
+            f'<p style="margin:0;color:#888;font-size:13px">If you did not try to sign in, ignore this email. '
+            f'Never share this code with anyone.</p></div>')
+    body = {"from": sender, "to": [to_email], "subject": "Your Shivkrupa Enterprises login code", "text": text, "html": html}
+    req = urllib.request.Request(
+        base + "/emails",
+        data=json.dumps(body).encode("utf-8"),
+        # Resend refuses requests without a User-Agent, so say plainly who is calling.
+        headers={"Authorization": "Bearer " + key, "Content-Type": "application/json", "Accept": "application/json",
+                 "User-Agent": "ShivkrupaEnterprises-App/1.0 (login OTP)"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            raw = resp.read()
+    except urllib.error.HTTPError as e:   # Resend answered with an error; its body says why
+        raw = e.read()
+        try:
+            err = json.loads(raw)
+        except ValueError:
+            err = {}
+        reason = (err.get("message") if isinstance(err, dict) else None) or f"HTTP {e.code}"
+        print(f"[otp] Resend did not send the email (HTTP {e.code}): {reason}")
+        raise OtpSendError("Resend refused to send the email.")
+    except Exception as e:                # no connection, timeout...
+        raise OtpSendError(f"Could not reach Resend ({type(e).__name__}).")
+    try:
+        data = json.loads(raw)
+    except ValueError:
+        data = {}
+    print(f"[otp] Email code handed to Resend for {mask_email(to_email)} (id={data.get('id') if isinstance(data, dict) else None!r})")
+
+
+# ---------------------------------------------------------------------------
 # Public functions used by the login routes
 # ---------------------------------------------------------------------------
 def send_otp_sms(mobile: str, code: str):
@@ -136,9 +231,13 @@ def send_otp_sms(mobile: str, code: str):
     print(f"\n[DEV MODE] OTP for {mobile}: {code}  (not sent to anyone; set OTP_PROVIDER to send for real)\n")
 
 
-def create_otp_for_user(db: Session, username: str, mobile: str) -> str:
+def create_otp_for_user(db: Session, user: "models.User") -> str:
     """Starts a login attempt: sends a code and returns the opaque otp_token.
     Raises OtpTooManyRequests or OtpSendError (nothing is left half-done in either case)."""
+    username, mobile = user.username, user.mobile
+    prov = provider()
+    if prov not in KNOWN_PROVIDERS:               # a typo must never quietly fall back to printing codes in the log
+        raise OtpSendError(f"OTP_PROVIDER has an unknown value ({prov!r}); use email, fast2sms or leave it unset.")
     now = datetime.now(timezone.utc)
     window_start = now - timedelta(minutes=WINDOW_MINUTES)
     recent = (db.query(models.OtpCode)
@@ -147,20 +246,25 @@ def create_otp_for_user(db: Session, username: str, mobile: str) -> str:
     if recent >= MAX_CODES_PER_WINDOW:
         raise OtpTooManyRequests()
 
-    real = provider() == "fast2sms"
-    code = "" if real else generate_otp()          # in real mode Fast2SMS holds the code, not us
+    dev = prov in ("", "dev")
     token = secrets.token_urlsafe(24)
-
-    if real:
+    if prov == "fast2sms":
+        stored = ""                                # Fast2SMS holds the code, not us
         _fast2sms_send(mobile)                     # raises OtpSendError -> nothing stored, nothing cancelled
+    elif prov == "email":
+        code = generate_otp()
+        _send_email_code(user.email, code)         # raises OtpSendError -> nothing stored, nothing cancelled
+        stored = _hash_code(code)                  # only a hash is kept
+    else:
+        code = stored = generate_otp()             # dev mode: plain code, printed below
 
     # A new code cancels any older unused one for this person.
     for old in db.query(models.OtpCode).filter(models.OtpCode.username == username, models.OtpCode.consumed == False).all():  # noqa: E712
         old.consumed = True
-    db.add(models.OtpCode(token=token, username=username, code=code,
+    db.add(models.OtpCode(token=token, username=username, code=stored,
                           expires_at=now + timedelta(minutes=OTP_EXPIRE_MINUTES)))
     db.commit()
-    if not real:
+    if dev:
         send_otp_sms(mobile, code)
     return token
 
@@ -193,6 +297,8 @@ def verify_otp(db: Session, otp_token: str, code: str) -> str | None:
     code = (code or "").strip()
     if not code.isdigit() or len(code) > 8:
         ok = False
+    elif entry.code.startswith("h$"):              # email mode: we hold only a hash of the code
+        ok = secrets.compare_digest(entry.code, _hash_code(code))
     elif entry.code:                               # dev mode: we hold the code
         ok = secrets.compare_digest(entry.code, code)
     elif provider() == "fast2sms":                 # real mode: ask Fast2SMS

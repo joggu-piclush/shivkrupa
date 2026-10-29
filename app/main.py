@@ -16,7 +16,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import models, auth
+from . import models, auth, otp
 from .database import engine, SessionLocal
 from .routers import auth_router, sales, cash, expenses, production, raw_materials, parties, reports
 
@@ -33,6 +33,7 @@ def _add_missing_columns():
         # (table, column, SQL type + default)
         ("production", "cement_bags", "FLOAT NOT NULL DEFAULT 0"),
         ("otp_codes", "attempts", "INTEGER NOT NULL DEFAULT 0"),
+        ("users", "email", "VARCHAR NOT NULL DEFAULT ''"),
     ]
     insp = inspect(engine)
     tables = set(insp.get_table_names())
@@ -81,6 +82,7 @@ def seed_default_admin():
                 username=username,
                 password_hash=auth.hash_password(password),
                 mobile=mobile,
+                email=os.environ.get("SEED_ADMIN_EMAIL", "").strip(),
                 role="admin",
             ))
             db.commit()
@@ -91,14 +93,20 @@ def seed_default_admin():
             # changing SEED_ADMIN_MOBILE on the server: it is applied on the next start.
             # (The seed above only runs once, on an empty database, so without this the
             # number could never be changed after the first start.)
+            # SEED_ADMIN_EMAIL does the same for the address that receives the code by email.
             username = os.environ.get("SEED_ADMIN_USERNAME", "").strip()
             mobile = os.environ.get("SEED_ADMIN_MOBILE", "").strip()
-            if username and mobile:
+            email = os.environ.get("SEED_ADMIN_EMAIL", "").strip()
+            if username and (mobile or email):
                 user = db.query(models.User).filter(models.User.username == username).first()
-                if user and user.mobile != mobile:
+                if user and mobile and user.mobile != mobile:
                     user.mobile = mobile
                     db.commit()
                     print(f"[startup] Login {username!r} will now get its OTP on the number ending {mobile[-4:]}.")
+                if user and email and user.email != email:
+                    user.email = email
+                    db.commit()
+                    print(f"[startup] Login {username!r} will now get its email code at {otp.mask_email(email)}.")
     finally:
         db.close()
 
