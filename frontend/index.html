@@ -429,7 +429,7 @@
         </div>
         <p class="view-desc" id="sales-summary"></p>
         <div class="panel"><div class="table-wrap"><table>
-          <tr><th>Date</th><th>Sr.No</th><th>Party Name</th><th>Address</th><th>Mobile</th><th>Brick Type</th><th class="num">Qty</th><th class="num">Total Value</th><th>Carting By</th><th class="num">Carting Value</th><th></th></tr>
+          <tr><th>Date</th><th>Sr.No</th><th>Party Name</th><th>Site</th><th>Mobile</th><th>Brick Type</th><th class="num">Qty</th><th class="num">Total Value</th><th>Carting By</th><th class="num">Carting Value</th><th></th></tr>
           <tbody id="sales-rows"></tbody>
         </table></div></div>
       </section>
@@ -448,7 +448,7 @@
         </div>
         <p class="view-desc" id="cash-summary"></p>
         <div class="panel"><div class="table-wrap"><table>
-          <tr><th>Date</th><th>Name of Client</th><th>Address</th><th>Mobile</th><th class="num">Amount Received</th><th>Mode</th><th></th></tr>
+          <tr><th>Date</th><th>Name of Client</th><th>Site</th><th>Mobile</th><th class="num">Amount Received</th><th>Mode</th><th></th></tr>
           <tbody id="cash-rows"></tbody>
         </table></div></div>
       </section>
@@ -492,7 +492,7 @@
           </div>
           <p class="view-desc" id="ledger-detail-range"></p>
           <div class="panel"><div class="table-wrap"><table>
-            <tr><th>Date</th><th>Particulars</th><th>Site / Address</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr>
+            <tr><th>Date</th><th>Particulars</th><th>Site</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr>
             <tbody id="ledger-detail-rows"></tbody>
           </table></div></div>
           <div style="margin-top:14px;"><button class="btn pdf" onclick="downloadLedgerStatementPDF(currentLedgerParty)">⬇ Download Statement PDF</button></div>
@@ -738,7 +738,7 @@
     <div class="entry-form-grid">
       <div class="form-field"><label>Date</label><input type="date" id="sales-form-date"></div>
       <div class="form-field"><label>Party Name</label><input type="text" id="sales-form-party" list="party-directory-list" oninput="onPartyPicked('sales')" placeholder="Start typing..."></div>
-      <div class="form-field"><label>Address</label><input type="text" id="sales-form-address"></div>
+      <div class="form-field"><label>Site</label><input type="text" id="sales-form-address"></div>
       <div class="form-field"><label>Mobile</label><input type="text" id="sales-form-mobile"></div>
       <div class="form-field"><label>Brick Type</label><select id="sales-form-brick-type"><option value="4 inch">4 inch</option><option value="6 inch">6 inch</option></select></div>
       <div class="form-field"><label>Quantity (bricks)</label><input type="number" id="sales-form-qty"></div>
@@ -759,7 +759,7 @@
     <div class="entry-form-grid">
       <div class="form-field"><label>Date</label><input type="date" id="cash-form-date"></div>
       <div class="form-field"><label>Name of Client</label><input type="text" id="cash-form-party" list="party-directory-list" oninput="onPartyPicked('cash')" placeholder="Start typing..."></div>
-      <div class="form-field"><label>Address</label><input type="text" id="cash-form-address"></div>
+      <div class="form-field"><label>Site</label><input type="text" id="cash-form-address"></div>
       <div class="form-field"><label>Mobile</label><input type="text" id="cash-form-mobile"></div>
       <div class="form-field"><label>Amount Received (Rs.)</label><input type="number" id="cash-form-amount"></div>
       <div class="form-field"><label>Mode of Payment</label><input type="text" id="cash-form-mode" list="payment-mode-list" placeholder="Cash, UPI, ..."></div>
@@ -2003,7 +2003,7 @@
     var y = pdfHeader(doc, 'Sales Book', subtitle);
     pdfTable(doc, y, null, [
       {header:'Date',key:'date',w:1},{header:'Sr.No',key:'sr',w:0.5},{header:'Party Name',key:'party',w:1.6},
-      {header:'Address',key:'address',w:1.4},{header:'Mobile',key:'mobile',w:1},{header:'Brick Type',key:'bt',w:0.8},
+      {header:'Site',key:'address',w:1.4},{header:'Mobile',key:'mobile',w:1},{header:'Brick Type',key:'bt',w:0.8},
       {header:'Qty',key:'qty',w:0.7,align:'right'},{header:'Total Value',key:'value',w:0.9,align:'right'},
       {header:'Carting By',key:'cartBy',w:0.8},{header:'Carting Value',key:'cartVal',w:0.9,align:'right'}
     ], rows);
@@ -2020,7 +2020,7 @@
     var subtitle = rangeLabel(from, to) + (selectedParty ? '   |   Party: ' + selectedParty : '') + (selectedMode ? '   |   Mode: ' + selectedMode : '');
     var y = pdfHeader(doc, 'Cash Book', subtitle);
     pdfTable(doc, y, null, [
-      {header:'Date',key:'date',w:1},{header:'Name of Client',key:'name',w:1.8},{header:'Address',key:'address',w:1.6},
+      {header:'Date',key:'date',w:1},{header:'Name of Client',key:'name',w:1.8},{header:'Site',key:'address',w:1.6},
       {header:'Mobile',key:'mobile',w:1.1},{header:'Amount Received',key:'amount',w:1.1,align:'right'},{header:'Mode',key:'mode',w:1}
     ], rows);
     pdfFooterAndSave(doc, 'Shivkrupa_Cash_Book.pdf');
@@ -2145,7 +2145,7 @@
     var doc = newPDF('landscape');
     var y = pdfHeader(doc, 'Ledger Statement - ' + party, rangeLabel(document.getElementById('ledger-from').value, document.getElementById('ledger-to').value));
     pdfTable(doc, y, null, [
-      {header:'Date',key:'date',w:0.9},{header:'Particulars',key:'particulars',w:2},{header:'Site / Address',key:'address',w:2.2},
+      {header:'Date',key:'date',w:0.9},{header:'Particulars',key:'particulars',w:2},{header:'Site',key:'address',w:2.2},
       {header:'Debit',key:'debit',w:1,align:'right'},{header:'Credit',key:'credit',w:1,align:'right'},{header:'Balance',key:'balance',w:1,align:'right'}
     ], rows);
     pdfFooterAndSave(doc, 'Shivkrupa_Ledger_' + party.replace(/\s+/g,'_') + '.pdf');
