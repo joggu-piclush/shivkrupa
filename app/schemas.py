@@ -6,7 +6,7 @@ missing a required field or sends text where a number belongs, the API
 rejects it with a clear error before your code even runs. This is most of
 what makes FastAPI worth using over writing raw request-parsing by hand.
 """
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import date as Date, datetime
 from typing import Optional
 
@@ -38,6 +38,9 @@ class PartyOut(BaseModel):
     name: str
     address: str
     mobile: str
+    # Every site (address) ever used with this party in Sales or Cash, most recently used first.
+    # The Site box on the entry forms offers these as its drop-down for the chosen party.
+    sites: list[str] = []
     model_config = {"from_attributes": True}
 
 
@@ -52,6 +55,7 @@ class SaleCreate(BaseModel):
     total_value: float
     carting_by: str = "Party"
     carting_value: float = 0
+    remarks: str = Field(default="", max_length=500)
 
 
 class SaleOut(SaleCreate):

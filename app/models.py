@@ -55,6 +55,7 @@ class Sale(Base):
     total_value = Column(Float, nullable=False)
     carting_by = Column(String, default="Party")  # "Party" | "Company"
     carting_value = Column(Float, default=0)
+    remarks = Column(String, nullable=False, default="", server_default="")  # free-text note on the sale
     created_by = Column(String, default="")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

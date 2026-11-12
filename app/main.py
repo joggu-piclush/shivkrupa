@@ -34,6 +34,7 @@ def _add_missing_columns():
         ("production", "cement_bags", "FLOAT NOT NULL DEFAULT 0"),
         ("otp_codes", "attempts", "INTEGER NOT NULL DEFAULT 0"),
         ("users", "email", "VARCHAR NOT NULL DEFAULT ''"),
+        ("sales", "remarks", "VARCHAR NOT NULL DEFAULT ''"),
     ]
     insp = inspect(engine)
     tables = set(insp.get_table_names())

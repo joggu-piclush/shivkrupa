@@ -10,6 +10,11 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="Shivkrupa">
+<script>
+  // A refreshed page that still holds a signed-in session hides the login form until it has checked it
+  // (so there is no flash of the login screen). The page script lifts this; the timer is only a safety net.
+  try { if (sessionStorage.getItem('sk_session')) { document.documentElement.classList.add('resuming'); setTimeout(function(){ document.documentElement.classList.remove('resuming'); }, 8000); } } catch (e) {}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -255,6 +260,8 @@
 
   /* ---------- Login / OTP ---------- */
   #desktop-auth-overlay{position:absolute; inset:0; z-index:150; background:var(--paper); display:flex; align-items:center; justify-content:center;}
+  /* While a refreshed page is checking its saved session, don't flash the login form. */
+  html.resuming #desktop-login-screen, html.resuming #mobile-login-screen{display:none !important;}
   .auth-card{width:100%; max-width:380px; padding:20px;}
   .auth-brand{text-align:center; margin-bottom:26px;}
   .auth-brand .brand-mark{margin:0 auto 12px auto;}
@@ -435,7 +442,7 @@
         </div>
         <p class="view-desc" id="sales-summary"></p>
         <div class="panel"><div class="table-wrap"><table>
-          <tr><th>Date</th><th>Sr.No</th><th>Party Name</th><th>Site</th><th>Mobile</th><th>Brick Type</th><th class="num">Qty</th><th class="num">Total Value</th><th>Carting By</th><th class="num">Carting Value</th><th></th></tr>
+          <tr><th>Date</th><th>Sr.No</th><th>Party Name</th><th>Site</th><th>Mobile</th><th>Brick Type</th><th class="num">Qty</th><th class="num">Total Value</th><th>Carting By</th><th class="num">Carting Value</th><th>Remarks</th><th></th></tr>
           <tbody id="sales-rows"></tbody>
         </table></div></div>
       </section>
@@ -744,12 +751,13 @@
     <div class="entry-form-grid">
       <div class="form-field"><label>Date</label><input type="date" id="sales-form-date"></div>
       <div class="form-field"><label>Party Name</label><input type="text" id="sales-form-party" list="party-directory-list" oninput="onPartyPicked('sales')" placeholder="Start typing..."></div>
-      <div class="form-field"><label>Site</label><input type="text" id="sales-form-address"></div>
+      <div class="form-field"><label>Site</label><input type="text" id="sales-form-address" list="site-list" autocomplete="off"></div>
       <div class="form-field"><label>Mobile</label><input type="text" id="sales-form-mobile"></div>
       <div class="form-field"><label>Brick Type</label><select id="sales-form-brick-type"><option value="4 inch">4 inch</option><option value="6 inch">6 inch</option></select></div>
       <div class="form-field"><label>Quantity (bricks)</label><input type="number" id="sales-form-qty"></div>
       <div class="form-field"><label>Total Value (Rs.)</label><input type="number" id="sales-form-value"></div>
       <div class="form-field"><label>Carting By</label><select id="sales-form-cartby"><option value="Party">Party</option><option value="Company">Company</option></select></div>
+      <div class="form-field"><label>Remarks</label><input type="text" id="sales-form-remarks" maxlength="500" placeholder="Optional" autocomplete="off"></div>
       <div class="form-field"><label>Carting Value (Rs.)</label><input type="number" id="sales-form-cartval" value="0"></div>
     </div>
     <div class="entry-form-actions">
@@ -765,7 +773,7 @@
     <div class="entry-form-grid">
       <div class="form-field"><label>Date</label><input type="date" id="cash-form-date"></div>
       <div class="form-field"><label>Name of Client</label><input type="text" id="cash-form-party" list="party-directory-list" oninput="onPartyPicked('cash')" placeholder="Start typing..."></div>
-      <div class="form-field"><label>Site</label><input type="text" id="cash-form-address"></div>
+      <div class="form-field"><label>Site</label><input type="text" id="cash-form-address" list="site-list" autocomplete="off"></div>
       <div class="form-field"><label>Mobile</label><input type="text" id="cash-form-mobile"></div>
       <div class="form-field"><label>Amount Received (Rs.)</label><input type="number" id="cash-form-amount"></div>
       <div class="form-field"><label>Mode of Payment</label><input type="text" id="cash-form-mode" list="payment-mode-list" placeholder="Cash, UPI, ..."></div>
@@ -829,6 +837,7 @@
 </div>
 
 <datalist id="party-directory-list"></datalist>
+<datalist id="site-list"></datalist>
 <datalist id="payment-mode-list"></datalist>
 <datalist id="expense-particulars-list"></datalist>
 <datalist id="expense-details-list"></datalist>
@@ -865,6 +874,18 @@
 
   // ---------- API client ----------
   let accessToken = null;
+
+  // ---------- Session: survives a refresh, ends after 10 seconds away from the tab ----------
+  // The signed-in token is kept in this browser TAB's session storage (not the phone's permanent storage):
+  // a refresh keeps you signed in; closing the tab erases it; and leaving the tab for more than 10 seconds signs you out.
+  var SESSION_KEY = 'sk_session';   // the access token
+  var AWAY_KEY = 'sk_left_at';      // when the tab was last left (milliseconds)
+  var AWAY_LIMIT_MS = 10000;
+  var AWAY_MESSAGE = 'You were signed out because you left the app for more than 10 seconds. Please sign in again.';
+  var awayTimer = null;
+  function storeGet(k){ try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+  function storeSet(k, v){ try { sessionStorage.setItem(k, v); } catch (e) { /* storage blocked: the session then lasts until refresh, as before */ } }
+  function storeDel(k){ try { sessionStorage.removeItem(k); } catch (e) {} }
 
   async function apiRequest(method, path, body){
     var headers = {'Content-Type': 'application/json'};
@@ -985,6 +1006,8 @@
     try {
       var data = await apiRequest('POST', '/auth/verify-otp', {otp_token: pendingOtpToken[context], code: code});
       accessToken = data.access_token;
+      storeSet(SESSION_KEY, accessToken);
+      storeDel(AWAY_KEY);
       await unlockApp();
     } catch (e) {
       errorEl.textContent = e.message;
@@ -1050,8 +1073,12 @@
     }
   }
 
-  function lockApp(){
+  function lockApp(reason){
     accessToken = null;
+    storeDel(SESSION_KEY); storeDel(AWAY_KEY);
+    clearTimeout(awayTimer);
+    // An entry form that is open sits above the login screen, so close it (and clear what was typed in it).
+    ['sales', 'cash', 'expenses', 'production', 'raw'].forEach(function(n){ closeModal(n); });
     document.getElementById('desktop-auth-overlay').style.display = 'flex';
     document.getElementById('mobile-auth-gate').style.display = 'flex';
     document.getElementById('mobile-app-shell').style.display = 'none';
@@ -1060,9 +1087,59 @@
       document.getElementById(context + '-otp-screen').style.display = 'none';
       document.getElementById(context + '-login-id').value = '';
       document.getElementById(context + '-login-password').value = '';
-      document.getElementById(context + '-login-error').textContent = '';
+      document.getElementById(context + '-login-error').textContent = (typeof reason === 'string') ? reason : '';
       clearOtpBoxes(context);
     });
+  }
+
+  // Signs out when the tab was left for more than 10 seconds. Only while signed in: someone still typing the
+  // login code has to leave this tab to read it, and must not be thrown back to the first login step.
+  function leftTab(){
+    if (!accessToken) return;
+    if (storeGet(AWAY_KEY) === null) storeSet(AWAY_KEY, String(Date.now()));  // keep the first time if this fires twice
+    clearTimeout(awayTimer);
+    awayTimer = setTimeout(function(){ if (document.hidden && accessToken) lockApp(AWAY_MESSAGE); }, AWAY_LIMIT_MS);
+  }
+  function backOnTab(){
+    clearTimeout(awayTimer);
+    var left = parseInt(storeGet(AWAY_KEY), 10);
+    storeDel(AWAY_KEY);
+    // The timer above can be paused by the phone while the tab is in the background, so the time away is also checked on return.
+    if (accessToken && left && Date.now() - left > AWAY_LIMIT_MS) lockApp(AWAY_MESSAGE);
+  }
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) leftTab(); else backOnTab(); });
+  window.addEventListener('pagehide', leftTab);  // some phone browsers report leaving this way instead
+  window.addEventListener('pageshow', function(e){ if (e.persisted) backOnTab(); });
+
+  // After a refresh: pick the signed-in session back up, unless the tab was left for over 10 seconds
+  // (or the saved session has expired), in which case the login screen shows as usual.
+  async function resumeSession(){
+    var token = storeGet(SESSION_KEY);
+    try {
+      if (!token) return;
+      var left = parseInt(storeGet(AWAY_KEY), 10);
+      storeDel(AWAY_KEY);
+      if (left && Date.now() - left > AWAY_LIMIT_MS){
+        storeDel(SESSION_KEY);
+        showLoginNotice(AWAY_MESSAGE);
+        return;
+      }
+      accessToken = token;
+      try {
+        await apiRequest('GET', '/parties');  // quick check that the saved session is still valid
+      } catch (e) {
+        accessToken = null;
+        if (/expired session|log in again/i.test(e.message)){ storeDel(SESSION_KEY); showLoginNotice('Your session ended. Please sign in again.'); }
+        else { showLoginNotice(e.message); }  // e.g. no internet: the saved session is kept, so a refresh can pick it up
+        return;
+      }
+      await unlockApp();
+    } finally {
+      document.documentElement.classList.remove('resuming');
+    }
+  }
+  function showLoginNotice(text){
+    ['desktop', 'mobile'].forEach(function(c){ document.getElementById(c + '-login-error').textContent = text; });
   }
 
   // =========================================================================
@@ -1116,9 +1193,9 @@
       var pParties = early('/parties'), pModes = early('/cash/modes'), pParticulars = early('/expenses/particulars'), pDetails = early('/expenses/details'), pMaterials = early('/raw-materials/materials'), pSuppliers = early('/raw-materials/suppliers'), pBrickTypes = early('/production/brick-types');
       var parties = await pParties;
       partyDirectory = {};
-      parties.forEach(function(p){ partyDirectory[p.name] = {address: p.address, mobile: p.mobile}; });
+      parties.forEach(function(p){ partyDirectory[p.name] = {address: p.address, mobile: p.mobile, sites: p.sites || []}; });
       document.getElementById('party-directory-list').innerHTML =
-        parties.map(function(p){ return '<option value="' + p.name + '"></option>'; }).join('');
+        parties.map(function(p){ return '<option value="' + escHtml(p.name) + '"></option>'; }).join('');
 
       var modes = await pModes;
       document.getElementById('payment-mode-list').innerHTML =
@@ -1146,11 +1223,30 @@
     }
   }
 
+  // The sites saved for one party (most recently used first). Matches the party name with or without capitals.
+  function sitesForParty(name){
+    name = (name || '').trim();
+    if (!name) return [];
+    if (partyDirectory[name]) return partyDirectory[name].sites || [];
+    var lower = name.toLowerCase();
+    var hit = Object.keys(partyDirectory).find(function(k){ return k.toLowerCase() === lower; });
+    return hit ? (partyDirectory[hit].sites || []) : [];
+  }
+
+  // Fills the Site box's drop-down with only the chosen party's own sites ('' empties it).
+  function updateSiteList(name){
+    document.getElementById('site-list').innerHTML =
+      sitesForParty(name).map(function(s){ return '<option value="' + escHtml(s) + '"></option>'; }).join('');
+  }
+
   function onPartyPicked(module){
     var name = document.getElementById(module + '-form-party').value;
     var match = partyDirectory[name];
+    updateSiteList(name);
     if (match){
-      document.getElementById(module + '-form-address').value = match.address;
+      // A party with several saved sites gets an empty Site box, so tapping it opens the whole list
+      // (a browser only lists the suggestions that match what is already typed). With one site, it is filled in.
+      document.getElementById(module + '-form-address').value = (match.sites && match.sites.length > 1) ? '' : match.address;
       document.getElementById(module + '-form-mobile').value = match.mobile;
     }
   }
@@ -1187,8 +1283,9 @@
     document.getElementById(name + '-modal-title').textContent = modalTitles[name].add;
     var dateField = document.getElementById(name + '-form-date');
     if (dateField) dateField.value = todayIso();
+    updateSiteList('');  // no party chosen yet, so no site suggestions yet
     if (name === 'sales'){
-      document.getElementById('sales-form-cartby').value = 'Party';
+      document.getElementById('sales-form-cartby').value = 'Company';  // a new sale starts as "carting by Company"
       document.getElementById('sales-form-cartval').value = '0';
       document.getElementById('sales-form-brick-type').value = '4 inch';
     }
@@ -1209,8 +1306,11 @@
       document.getElementById('sales-form-qty').value = row.quantity;
       document.getElementById('sales-form-value').value = row.total_value;
       document.getElementById('sales-form-cartby').value = row.carting_by;
+      document.getElementById('sales-form-remarks').value = row.remarks || '';
       document.getElementById('sales-form-cartval').value = row.carting_value;
+      updateSiteList(row.party_name);
     } else if (name === 'cash'){
+      updateSiteList(row.name);
       document.getElementById('cash-form-date').value = row.date;
       document.getElementById('cash-form-party').value = row.name;
       document.getElementById('cash-form-address').value = row.address;
@@ -1286,7 +1386,7 @@
     try {
       rows = await apiRequest('GET', '/sales' + qs({date_from: from, date_to: to, party: selectedParty, brick_type: selectedBt}));
     } catch (e) {
-      document.getElementById('sales-rows').innerHTML = '<tr><td colspan="11" class="muted-dash">' + e.message + '</td></tr>';
+      document.getElementById('sales-rows').innerHTML = '<tr><td colspan="12" class="muted-dash">' + e.message + '</td></tr>';
       return;
     }
     currentRows.sales = rows;
@@ -1299,23 +1399,25 @@
       ' \u2014 ' + totalQty.toLocaleString('en-IN') + ' bricks, ' + formatINR(totalValue) + ' total';
 
     document.getElementById('sales-rows').innerHTML = rows.map(function(r){
-      return '<tr><td>' + fmtDate(r.date) + '</td><td>' + r.sr_no + '</td><td>' + r.party_name + '</td><td>' + r.address + '</td><td>' + r.mobile + '</td>' +
+      return '<tr><td>' + fmtDate(r.date) + '</td><td>' + r.sr_no + '</td><td>' + escHtml(r.party_name) + '</td><td>' + escHtml(r.address) + '</td><td>' + escHtml(r.mobile) + '</td>' +
         '<td>' + r.brick_type + '</td>' +
         '<td class="num">' + r.quantity.toLocaleString('en-IN') + '</td><td class="num">' + formatINR(r.total_value) + '</td>' +
         '<td><span class="pill ' + (r.carting_by === 'Company' ? 'clay' : 'muted') + '">' + r.carting_by + '</span></td>' +
         '<td class="num' + (r.carting_value ? '' : ' muted-dash') + '">' + (r.carting_value ? formatINR(r.carting_value) : '\u2014') + '</td>' +
+        '<td class="' + (r.remarks ? '' : 'muted-dash') + '" style="max-width:220px; white-space:normal; overflow-wrap:anywhere;">' + (r.remarks ? escHtml(r.remarks) : '\u2014') + '</td>' +
         '<td><div class="row-actions">' +
           '<button class="icon-btn" title="Edit" onclick="openEditModal(\'sales\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
           '<button class="icon-btn danger" title="Delete" onclick="deleteEntry(\'sales\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
         '</div></td></tr>';
-    }).join('') || '<tr><td colspan="11" class="muted-dash">No entries in this range</td></tr>';
+    }).join('') || '<tr><td colspan="12" class="muted-dash">No entries in this range</td></tr>';
 
     renderMobileSales();
   }
 
   function renderMobileSales(){
     document.getElementById('m-sales-rows').innerHTML = currentRows.sales.map(function(r){
-      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + r.party_name + '</div><div class="m-row-sub">' + shortDate(r.date) + ' \u00b7 ' + r.brick_type + ' \u00b7 Qty ' + r.quantity.toLocaleString('en-IN') + '</div></div>' +
+      return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + escHtml(r.party_name) + '</div><div class="m-row-sub">' + shortDate(r.date) + ' \u00b7 ' + r.brick_type + ' \u00b7 Qty ' + r.quantity.toLocaleString('en-IN') + '</div>' +
+        (r.remarks ? '<div class="m-row-sub">' + escHtml(r.remarks) + '</div>' : '') + '</div>' +
         '<div class="m-row-right"><div class="m-row-amount">' + formatINR(r.total_value) + '</div><div class="m-row-actions">' +
         '<button class="icon-btn small" onclick="openEditModal(\'sales\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
         '<button class="icon-btn small danger" onclick="deleteEntry(\'sales\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
@@ -1333,6 +1435,7 @@
       quantity: parseFloat(document.getElementById('sales-form-qty').value),
       total_value: parseFloat(document.getElementById('sales-form-value').value),
       carting_by: document.getElementById('sales-form-cartby').value,
+      remarks: document.getElementById('sales-form-remarks').value.trim(),
       carting_value: parseFloat(document.getElementById('sales-form-cartval').value) || 0,
     };
     if (!payload.date || !payload.party_name || isNaN(payload.quantity) || isNaN(payload.total_value)){
@@ -2002,7 +2105,7 @@
     var rows = currentRows.sales.map(function(r){
       return {date:fmtDate(r.date), sr:r.sr_no, party:r.party_name, address:r.address, mobile:r.mobile, bt:r.brick_type,
         qty:r.quantity.toLocaleString('en-IN'), value:formatINR_PDF(r.total_value), cartBy:r.carting_by,
-        cartVal:r.carting_value ? formatINR_PDF(r.carting_value) : '-'};
+        cartVal:r.carting_value ? formatINR_PDF(r.carting_value) : '-', remarks:r.remarks || ''};
     });
     var doc = newPDF('landscape');
     var subtitle = rangeLabel(from, to) + (selectedParty ? '   |   Party: ' + selectedParty : '') + (selectedBt ? '   |   ' + selectedBt : '');
@@ -2011,7 +2114,8 @@
       {header:'Date',key:'date',w:1},{header:'Sr.No',key:'sr',w:0.5},{header:'Party Name',key:'party',w:1.6},
       {header:'Site',key:'address',w:1.4},{header:'Mobile',key:'mobile',w:1},{header:'Brick Type',key:'bt',w:0.8},
       {header:'Qty',key:'qty',w:0.7,align:'right'},{header:'Total Value',key:'value',w:0.9,align:'right'},
-      {header:'Carting By',key:'cartBy',w:0.8},{header:'Carting Value',key:'cartVal',w:0.9,align:'right'}
+      {header:'Carting By',key:'cartBy',w:0.8},{header:'Carting Value',key:'cartVal',w:0.9,align:'right'},
+      {header:'Remarks',key:'remarks',w:1.5}
     ], rows);
     pdfFooterAndSave(doc, 'Shivkrupa_Sales_Book.pdf');
   }
@@ -2162,6 +2266,7 @@
   buildOtpBoxes('mobile', 4);
   document.getElementById('desktop-login-password').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ attemptLogin('desktop'); } });
   document.getElementById('mobile-login-password').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ attemptLogin('mobile'); } });
+  resumeSession();
 </script>
 
 </body>
