@@ -875,13 +875,13 @@
   // ---------- API client ----------
   let accessToken = null;
 
-  // ---------- Session: survives a refresh, ends after 10 seconds away from the tab ----------
+  // ---------- Session: survives a refresh, ends after 5 minutes away from the tab ----------
   // The signed-in token is kept in this browser TAB's session storage (not the phone's permanent storage):
-  // a refresh keeps you signed in; closing the tab erases it; and leaving the tab for more than 10 seconds signs you out.
+  // a refresh keeps you signed in; closing the tab erases it; and leaving the tab for more than 5 minutes signs you out.
   var SESSION_KEY = 'sk_session';   // the access token
   var AWAY_KEY = 'sk_left_at';      // when the tab was last left (milliseconds)
-  var AWAY_LIMIT_MS = 10000;
-  var AWAY_MESSAGE = 'You were signed out because you left the app for more than 10 seconds. Please sign in again.';
+  var AWAY_LIMIT_MS = 5 * 60 * 1000;  // 5 minutes
+  var AWAY_MESSAGE = 'You were signed out because you left the app for more than 5 minutes. Please sign in again.';
   var awayTimer = null;
   function storeGet(k){ try { return sessionStorage.getItem(k); } catch (e) { return null; } }
   function storeSet(k, v){ try { sessionStorage.setItem(k, v); } catch (e) { /* storage blocked: the session then lasts until refresh, as before */ } }
@@ -1092,7 +1092,7 @@
     });
   }
 
-  // Signs out when the tab was left for more than 10 seconds. Only while signed in: someone still typing the
+  // Signs out when the tab was left for more than 5 minutes. Only while signed in: someone still typing the
   // login code has to leave this tab to read it, and must not be thrown back to the first login step.
   function leftTab(){
     if (!accessToken) return;
@@ -1111,7 +1111,7 @@
   window.addEventListener('pagehide', leftTab);  // some phone browsers report leaving this way instead
   window.addEventListener('pageshow', function(e){ if (e.persisted) backOnTab(); });
 
-  // After a refresh: pick the signed-in session back up, unless the tab was left for over 10 seconds
+  // After a refresh: pick the signed-in session back up, unless the tab was left for over 5 minutes
   // (or the saved session has expired), in which case the login screen shows as usual.
   async function resumeSession(){
     var token = storeGet(SESSION_KEY);
