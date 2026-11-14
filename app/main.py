@@ -116,6 +116,23 @@ def seed_default_admin():
         db.close()
 
 
+@app.on_event("startup")
+def tidy_party_directory():
+    """Clears Party Directory names that no Sale or Cash entry uses (left behind when entries were deleted before
+    deleting an entry cleaned up after itself). Safe to run on every start: it removes nothing once none are left.
+    Only counts are logged, never names -- the same rule as the backup: nothing about the contents goes in the log."""
+    db = SessionLocal()
+    try:
+        removed, kept = parties.prune_unused_parties(db)
+        db.commit()
+        print(f"[startup] Party directory: {removed} unused name(s) removed, {kept} in use kept.")
+    except Exception as e:  # never stop the app from starting over housekeeping
+        db.rollback()
+        print(f"[startup] Party directory tidy-up skipped: {type(e).__name__}")
+    finally:
+        db.close()
+
+
 @app.get("/")
 def health_check():
     return {"status": "ok", "service": "Shivkrupa Enterprises API"}

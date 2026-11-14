@@ -7,6 +7,7 @@ from .. import models, schemas
 from ..database import get_db
 from ..deps import get_current_user
 from .sales import party_directory_upsert
+from .parties import prune_party_if_unused
 
 router = APIRouter(prefix="/cash", tags=["cash"])
 
@@ -63,9 +64,13 @@ def update_cash(
     entry = db.query(models.CashEntry).filter(models.CashEntry.id == entry_id).first()
     if not entry:
         raise HTTPException(status_code=404, detail="Cash entry not found.")
+    old_name = entry.name
     for field, value in payload.model_dump().items():
         setattr(entry, field, value)
     party_directory_upsert(db, payload.name, payload.address, payload.mobile)
+    if old_name != payload.name:  # renamed: the old name goes if nothing else uses it
+        db.flush()
+        prune_party_if_unused(db, old_name)
     db.commit()
     db.refresh(entry)
     return entry
@@ -80,6 +85,9 @@ def delete_cash(
     entry = db.query(models.CashEntry).filter(models.CashEntry.id == entry_id).first()
     if not entry:
         raise HTTPException(status_code=404, detail="Cash entry not found.")
+    name = entry.name
     db.delete(entry)
+    db.flush()
+    prune_party_if_unused(db, name)  # that was the party's last entry? then its Ledger card goes too
     db.commit()
     return {"deleted": True, "id": entry_id}

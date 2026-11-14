@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..database import get_db
 from ..deps import get_current_user
+from .parties import prune_party_if_unused
 
 router = APIRouter(prefix="/sales", tags=["sales"])
 
@@ -80,9 +81,13 @@ def update_sale(
     sale = db.query(models.Sale).filter(models.Sale.id == sale_id).first()
     if not sale:
         raise HTTPException(status_code=404, detail="Sale entry not found.")
+    old_party = sale.party_name
     for field, value in payload.model_dump().items():
         setattr(sale, field, value)
     party_directory_upsert(db, payload.party_name, payload.address, payload.mobile)
+    if old_party != payload.party_name:  # renamed: the old name goes if nothing else uses it
+        db.flush()
+        prune_party_if_unused(db, old_party)
     db.commit()
     db.refresh(sale)
     return sale
@@ -97,6 +102,9 @@ def delete_sale(
     sale = db.query(models.Sale).filter(models.Sale.id == sale_id).first()
     if not sale:
         raise HTTPException(status_code=404, detail="Sale entry not found.")
+    party_name = sale.party_name
     db.delete(sale)
+    db.flush()
+    prune_party_if_unused(db, party_name)  # that was the party's last entry? then its Ledger card goes too
     db.commit()
     return {"deleted": True, "id": sale_id}
