@@ -116,55 +116,6 @@ def seed_default_admin():
         db.close()
 
 
-# ---------------------------------------------------------------------------------------------------------------
-# ONE-OFF, at the owner's request: remove the test party "Om Industry" -- its sales, its cash entries and its
-# directory name (any capitals / extra spaces). Runs ONCE: a marker file beside the database stops it running
-# again, and a full copy of the database is saved beside it first. Only counts are logged. To be taken out of the
-# code again right after it has run.
-# ---------------------------------------------------------------------------------------------------------------
-@app.on_event("startup")
-def remove_requested_party():
-    import datetime
-    import sqlite3
-    url = engine.url
-    if url.get_backend_name() != "sqlite" or not url.database or url.database == ":memory:":
-        return
-    folder = os.path.dirname(os.path.abspath(url.database))
-    marker = os.path.join(folder, "maintenance-remove-om-industry.done")
-    if os.path.exists(marker):
-        return
-    target = "om industry"
-
-    def norm(s):
-        return " ".join((s or "").split()).casefold()
-
-    db = SessionLocal()
-    try:
-        sales = [r for r in db.query(models.Sale).all() if norm(r.party_name) == target]
-        cashes = [r for r in db.query(models.CashEntry).all() if norm(r.name) == target]
-        names = [r for r in db.query(models.Party).all() if norm(r.name) == target]
-        if sales or cashes or names:
-            copy_path = os.path.join(folder, "shivkrupa-before-removing-party-" + datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S") + ".db")
-            src, dst = sqlite3.connect(url.database, timeout=30), sqlite3.connect(copy_path)
-            try:
-                src.backup(dst)
-            finally:
-                dst.close()
-                src.close()
-            print("[maintenance] A full copy of the database was saved before removing the requested party.")
-            for r in sales + cashes + names:
-                db.delete(r)
-            db.commit()
-        print(f"[maintenance] Requested party removed: {len(sales)} sale(s), {len(cashes)} cash entr{'y' if len(cashes) == 1 else 'ies'}, {len(names)} directory name(s).")
-        with open(marker, "w") as f:
-            f.write("done")
-    except Exception as e:  # never stop the app from starting over this
-        db.rollback()
-        print(f"[maintenance] Requested party removal skipped: {type(e).__name__}")
-    finally:
-        db.close()
-
-
 @app.on_event("startup")
 def tidy_party_directory():
     """Clears Party Directory names that no Sale or Cash entry uses (left behind when entries were deleted before
