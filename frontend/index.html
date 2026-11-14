@@ -758,7 +758,7 @@
       <div class="form-field"><label>Total Value (Rs.)</label><input type="number" id="sales-form-value"></div>
       <div class="form-field"><label>Carting By</label><select id="sales-form-cartby"><option value="Party">Party</option><option value="Company">Company</option></select></div>
       <div class="form-field"><label>Remarks</label><input type="text" id="sales-form-remarks" maxlength="500" placeholder="Optional" autocomplete="off"></div>
-      <div class="form-field"><label>Carting Value (Rs.)</label><input type="number" id="sales-form-cartval" value="0"></div>
+      <div class="form-field"><label>Carting Value (Rs.)</label><input type="number" id="sales-form-cartval"></div>
     </div>
     <div class="entry-form-actions">
       <button class="btn ghost" onclick="closeModal('sales')">Cancel</button>
@@ -1286,7 +1286,7 @@
     updateSiteList('');  // no party chosen yet, so no site suggestions yet
     if (name === 'sales'){
       document.getElementById('sales-form-cartby').value = 'Company';  // a new sale starts as "carting by Company"
-      document.getElementById('sales-form-cartval').value = '0';
+      // Carting Value starts empty (clearForm already emptied it); left empty it is saved as 0.
       document.getElementById('sales-form-brick-type').value = '4 inch';
     }
     if (name === 'production'){
