@@ -232,6 +232,25 @@
   .m-btn-primary{display:block; width:100%; margin-top:16px; padding:12px; border:none; border-radius:10px; background:var(--clay); color:#fff; font-family:var(--font-ui); font-weight:600; font-size:13.5px; cursor:pointer;}
   .m-btn-secondary{display:block; width:100%; margin-top:10px; padding:10px; border:1px solid var(--line); border-radius:10px; background:var(--paper-raised); color:var(--ink); font-family:var(--font-ui); font-weight:600; font-size:12.5px; cursor:pointer;}
 
+  /* ---------- Phone filter panel (the desktop filter bar is not shown on a phone) ---------- */
+  .m-filter{margin:0 0 12px 0;}
+  .m-filter-toggle{display:flex; align-items:center; gap:8px; width:100%; padding:9px 12px; border:1px solid var(--line); border-radius:10px; background:var(--paper-raised); color:var(--ink); font-family:var(--font-ui); font-size:12.5px; cursor:pointer; text-align:left;}
+  .m-filter.open .m-filter-toggle{border-color:var(--clay);}
+  .m-filter-label{font-weight:600; flex:none;}
+  .m-filter-summary{flex:1; min-width:0; color:var(--ink-soft); font-size:11.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .m-filter-caret{flex:none; color:var(--ink-soft); font-size:11px; transition:transform .15s;}
+  .m-filter.open .m-filter-caret{transform:rotate(180deg);}
+  .m-filter-body{display:none; margin-top:8px; padding:12px; border:1px solid var(--line); border-radius:10px; background:var(--paper);}
+  .m-filter.open .m-filter-body{display:block;}
+  .m-filter-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .m-filter-grid .form-field{min-width:0;}
+  .m-filter-grid .form-field.wide{grid-column:1 / -1;}
+  .m-filter-body .form-field input, .m-filter-body .form-field select{background:var(--paper-raised); min-width:0;}
+  .m-filter-hint{margin:10px 0 0 0; font-size:11px; color:var(--ink-soft); line-height:1.4;}
+  .m-filter-actions{display:flex; gap:8px; margin-top:12px;}
+  .m-filter-actions button{flex:1; padding:9px; border:1px solid var(--line); border-radius:8px; background:var(--paper-raised); color:var(--ink); font-family:var(--font-ui); font-size:12px; font-weight:600; cursor:pointer;}
+  .m-filter-note{margin:8px 2px 0 2px; font-size:11.5px; color:var(--ink-soft);}
+
   /* ---------- Ledger: party panels + drill-down ---------- */
   .ledger-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:14px;}
   .ledger-card{border:1px solid var(--line); border-radius:10px; padding:16px 18px; background:var(--paper-raised); cursor:pointer; text-align:left; appearance:none; -webkit-appearance:none; font-family:var(--font-ui);}
@@ -658,6 +677,7 @@
 
         <div class="m-view" id="m-sales">
           <div class="m-screen-head"><div class="m-screen-title">Sales Book</div></div>
+          <div id="m-sales-filter"></div>
           <div id="m-sales-rows"></div>
           <button class="m-btn-primary" onclick="openAddModal('sales')">+ New Sale Entry</button>
           <button class="m-btn-secondary" onclick="downloadSalesPDF()">⬇ Download PDF</button>
@@ -665,6 +685,7 @@
 
         <div class="m-view" id="m-cash">
           <div class="m-screen-head"><div class="m-screen-title">Cash Book</div></div>
+          <div id="m-cash-filter"></div>
           <div id="m-cash-rows"></div>
           <button class="m-btn-primary" onclick="openAddModal('cash')">+ New Entry</button>
           <button class="m-btn-secondary" onclick="downloadCashPDF()">⬇ Download PDF</button>
@@ -677,12 +698,14 @@
           </div>
           <button class="m-btn-primary" onclick="openAddModal('production')">+ New Production Entry</button>
           <div class="m-section-title">Production Log</div>
+          <div id="m-production-filter"></div>
           <div id="m-production-rows"></div>
           <button class="m-btn-secondary" onclick="downloadProductionPDF()">⬇ Download PDF</button>
         </div>
 
         <div class="m-view" id="m-expenses">
           <div class="m-screen-head"><div class="m-screen-title">Expenses Book</div></div>
+          <div id="m-expenses-filter"></div>
           <div id="m-expenses-rows"></div>
           <button class="m-btn-primary" onclick="openAddModal('expenses')">+ New Expense Entry</button>
           <button class="m-btn-secondary" onclick="downloadExpensesPDF()">⬇ Download PDF</button>
@@ -690,11 +713,13 @@
 
         <div class="m-view" id="m-more">
           <div class="m-section-title">Raw Materials</div>
+          <div id="m-raw-filter"></div>
           <div id="m-raw-rows"></div>
           <button class="m-btn-primary" onclick="openAddModal('raw')">+ New Raw Material Entry</button>
           <button class="m-btn-secondary" onclick="downloadRawMaterialsPDF()">⬇ Download PDF</button>
 
           <div class="m-section-title">Ledger</div>
+          <div id="m-ledger-filter"></div>
           <div id="m-more-ledger-rows"></div>
           <button class="m-btn-secondary" onclick="downloadLedgerSummaryPDF()">⬇ Download Ledger Summary</button>
 
@@ -708,6 +733,7 @@
             <div class="m-stat-value" id="m-more-stock-6inch" style="font-size:20px;">0 bricks</div>
             <div class="m-row-sub" id="m-more-stock-sub-6inch"></div>
           </div>
+          <div id="m-stock-filter" style="margin-top:12px;"></div>
           <button class="m-btn-secondary" onclick="downloadStockPDF()">⬇ Download Stock Report</button>
 
           <div class="m-section-title" id="m-more-rep-period">Reports</div>
@@ -726,8 +752,9 @@
             <div class="m-screen-title" id="m-ledger-detail-name"></div>
             <div class="m-row-amount" id="m-ledger-detail-balance"></div>
           </div>
+          <div class="m-row-sub" id="m-ledger-detail-range" style="margin:-8px 2px 10px 2px;"></div>
           <div id="m-ledger-detail-rows"></div>
-          <button class="m-btn-secondary" onclick="downloadLedgerStatementPDF(currentLedgerParty)">⬇ Download Statement PDF</button>
+          <button class="m-btn-secondary" onclick="downloadLedgerStatementPDF(currentLedgerParty, true)">⬇ Download Statement PDF</button>
         </div>
 
       </div>
@@ -922,6 +949,116 @@
 
   function distinctFilterOptions(list, allLabel){
     return '<option value="">' + allLabel + '</option>' + list.map(function(v){ return '<option value="' + v + '">' + v + '</option>'; }).join('');
+  }
+
+  // =========================================================================
+  // PHONE FILTERS
+  // The desktop filter bars are not shown on a phone (that layout is swapped out), yet the lists, their totals and
+  // the PDFs all read the filter values. So each phone list gets a Filter panel whose fields write into those same
+  // inputs and re-run the same render: one set of values, nothing extra stored or sent anywhere.
+  // =========================================================================
+  function dateFields(p){ return [{id: p + '-from', label: 'From', kind: 'date'}, {id: p + '-to', label: 'To', kind: 'date'}]; }
+  var MOBILE_FILTERS = {
+    sales:      {render: function(){ return renderSalesTable(); }, note: 'sales-summary',
+                 fields: dateFields('sales').concat([{id:'sales-party', label:'Party', kind:'select'}, {id:'sales-brick-type', label:'Brick Type', kind:'select'}])},
+    cash:       {render: function(){ return renderCashTable(); }, note: 'cash-summary',
+                 fields: dateFields('cash').concat([{id:'cash-party', label:'Party', kind:'select'}, {id:'cash-mode', label:'Mode', kind:'select'}])},
+    expenses:   {render: function(){ return renderExpensesTable(); },
+                 fields: dateFields('expenses').concat([{id:'expenses-particulars', label:'Particulars', kind:'select'}])},
+    production: {render: function(){ return renderProductionTable(); },
+                 fields: dateFields('production').concat([{id:'production-brick-type', label:'Brick Type', kind:'select'}])},
+    raw:        {render: function(){ return renderRawMaterialsTable(); },
+                 fields: dateFields('raw').concat([{id:'raw-material-filter', label:'Material', kind:'select'}])},
+    ledger:     {render: function(){ return renderLedgerGrid(); }, fields: dateFields('ledger'),
+                 hint: 'Balances only count entries between these dates. Choose All time for the full running balance.'},
+    // The stock trend is worked out day by day, so it always needs both dates (no "All time" here).
+    stock:      {render: function(){ return renderStockChart(); }, requireDates: true,
+                 fields: dateFields('stock').concat([{id:'stock-brick-type', label:'Brick Type', kind:'select'}]),
+                 hint: 'Sets the dates and brick type for the Stock Report PDF below.'},
+  };
+
+  function mobileFilterSummary(key){
+    var cfg = MOBILE_FILTERS[key];
+    function val(f){ var el = document.getElementById(f.id); return el ? el.value : ''; }
+    var from = val(cfg.fields[0]), to = val(cfg.fields[1]);
+    var text = from && to ? fmtDate(from) + ' – ' + fmtDate(to) : from ? 'From ' + fmtDate(from) : to ? 'Up to ' + fmtDate(to) : 'All dates';
+    cfg.fields.slice(2).forEach(function(f){ if (val(f)) text += ' · ' + val(f); });
+    return text;
+  }
+
+  // Copy the real filter values (and the drop-down choices, which load from the server) onto the phone panel.
+  function syncMobileFilter(key){
+    var cfg = MOBILE_FILTERS[key], host = document.getElementById('m-' + key + '-filter');
+    if (!host || !host.firstChild) return;
+    cfg.fields.forEach(function(f){
+      var src = document.getElementById(f.id), dst = document.getElementById('m-' + f.id);
+      if (!src || !dst) return;
+      if (f.kind === 'select' && dst.innerHTML !== src.innerHTML) dst.innerHTML = src.innerHTML;
+      dst.value = src.value;
+    });
+    host.querySelector('.m-filter-summary').textContent = mobileFilterSummary(key);
+    var note = host.querySelector('.m-filter-note'), noteSrc = cfg.note && document.getElementById(cfg.note);
+    if (note) note.textContent = noteSrc ? noteSrc.textContent : '';
+  }
+
+  function applyMobileFilter(key){
+    var done = function(){ syncMobileFilter(key); };
+    Promise.resolve(MOBILE_FILTERS[key].render()).then(done, done);
+  }
+
+  function resetMobileFilter(key, how){
+    var cfg = MOBILE_FILTERS[key];
+    cfg.fields.forEach(function(f){
+      var el = document.getElementById(f.id);
+      if (!el) return;
+      if (f.kind === 'date') el.value = '';
+      else if (Array.prototype.some.call(el.options, function(o){ return o.value === ''; })) el.value = '';  // back to "All ..."
+    });
+    if (how === 'month' || cfg.requireDates){
+      document.getElementById(cfg.fields[0].id).value = firstOfMonthIso();
+      document.getElementById(cfg.fields[1].id).value = todayIso();
+    }
+    syncMobileFilter(key);
+    applyMobileFilter(key);
+  }
+
+  function buildMobileFilters(){
+    Object.keys(MOBILE_FILTERS).forEach(function(key){
+      var cfg = MOBILE_FILTERS[key], host = document.getElementById('m-' + key + '-filter');
+      if (!host) return;
+      host.classList.add('m-filter');
+      var fieldsHtml = cfg.fields.map(function(f){
+        var control = f.kind === 'date' ? '<input type="date" id="m-' + f.id + '">' : '<select id="m-' + f.id + '"></select>';
+        return '<div class="form-field' + (f.kind === 'date' ? '' : ' wide') + '"><label for="m-' + f.id + '">' + f.label + '</label>' + control + '</div>';
+      }).join('');
+      host.innerHTML =
+        '<button type="button" class="m-filter-toggle" aria-expanded="false"><span class="m-filter-label">Filter</span><span class="m-filter-summary"></span><span class="m-filter-caret">▾</span></button>' +
+        '<div class="m-filter-body"><div class="m-filter-grid">' + fieldsHtml + '</div>' +
+        (cfg.hint ? '<p class="m-filter-hint">' + cfg.hint + '</p>' : '') +
+        '<div class="m-filter-actions"><button type="button" data-how="month">This month</button>' +
+        (cfg.requireDates ? '' : '<button type="button" data-how="all">All time</button>') + '</div></div>' +
+        (cfg.note ? '<div class="m-filter-note"></div>' : '');
+
+      host.querySelector('.m-filter-toggle').addEventListener('click', function(){
+        this.setAttribute('aria-expanded', host.classList.toggle('open') ? 'true' : 'false');
+      });
+      host.addEventListener('change', function(e){
+        var id = e.target && e.target.id;
+        if (!id || id.indexOf('m-') !== 0) return;
+        var real = document.getElementById(id.slice(2));
+        if (!real) return;
+        real.value = e.target.value;
+        if (cfg.requireDates && !real.value){  // a cleared date would break the stock trend: put the usual one back
+          real.value = id.slice(2) === cfg.fields[0].id ? firstOfMonthIso() : todayIso();
+          syncMobileFilter(key);
+        }
+        applyMobileFilter(key);
+      });
+      host.querySelectorAll('.m-filter-actions button').forEach(function(btn){
+        btn.addEventListener('click', function(){ resetMobileFilter(key, btn.dataset.how); });
+      });
+      syncMobileFilter(key);
+    });
   }
 
   // =========================================================================
@@ -1415,6 +1552,7 @@
   }
 
   function renderMobileSales(){
+    syncMobileFilter('sales');
     document.getElementById('m-sales-rows').innerHTML = currentRows.sales.map(function(r){
       return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + escHtml(r.party_name) + '</div><div class="m-row-sub">' + shortDate(r.date) + ' \u00b7 ' + r.brick_type + ' \u00b7 Qty ' + r.quantity.toLocaleString('en-IN') + '</div>' +
         (r.remarks ? '<div class="m-row-sub">' + escHtml(r.remarks) + '</div>' : '') + '</div>' +
@@ -1422,7 +1560,7 @@
         '<button class="icon-btn small" onclick="openEditModal(\'sales\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
         '<button class="icon-btn small danger" onclick="deleteEntry(\'sales\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
         '</div></div></div>';
-    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries yet</div>';
+    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries in this range</div>';
   }
 
   async function submitSalesEntry(){
@@ -1503,13 +1641,14 @@
   }
 
   function renderMobileCash(){
+    syncMobileFilter('cash');
     document.getElementById('m-cash-rows').innerHTML = currentRows.cash.map(function(r){
       return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + r.name + '</div><div class="m-row-sub">' + shortDate(r.date) + ' \u00b7 ' + r.mode + '</div></div>' +
         '<div class="m-row-right"><div class="m-row-amount clr-sage">' + formatINR(r.amount) + '</div><div class="m-row-actions">' +
         '<button class="icon-btn small" onclick="openEditModal(\'cash\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
         '<button class="icon-btn small danger" onclick="deleteEntry(\'cash\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
         '</div></div></div>';
-    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries yet</div>';
+    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries in this range</div>';
   }
 
   async function submitCashEntry(){
@@ -1577,13 +1716,14 @@
   }
 
   function renderMobileExpenses(){
+    syncMobileFilter('expenses');
     document.getElementById('m-expenses-rows').innerHTML = currentRows.expenses.map(function(r){
       return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + r.particulars + '</div><div class="m-row-sub">' + shortDate(r.date) + ' \u00b7 ' + r.details + '</div></div>' +
         '<div class="m-row-right"><div class="m-row-amount">' + formatINR(r.amount) + '</div><div class="m-row-actions">' +
         '<button class="icon-btn small" onclick="openEditModal(\'expenses\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
         '<button class="icon-btn small danger" onclick="deleteEntry(\'expenses\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
         '</div></div></div>';
-    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries yet</div>';
+    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries in this range</div>';
   }
 
   async function submitExpenseEntry(){
@@ -1658,13 +1798,14 @@
   }
 
   function renderMobileProduction(){
+    syncMobileFilter('production');
     document.getElementById('m-production-rows').innerHTML = currentRows.production.map(function(r){
       return '<div class="m-list-row"><div class="m-row-text"><div class="m-row-title">' + shortDate(r.date) + ' \u00b7 ' + r.brick_type + '</div><div class="m-row-sub">' + r.pallets + ' pallets \u00b7 ' + (r.cement_bags || 0) + ' cement bags' + (r.average == null ? '' : ' \u00b7 avg ' + fmtAverage(r.average)) + ' \u00b7 ' + r.entered_by + '</div></div>' +
         '<div class="m-row-right"><div class="m-row-amount clr-kiln">' + r.bricks.toLocaleString('en-IN') + ' bricks</div><div class="m-row-actions">' +
         '<button class="icon-btn small" onclick="openEditModal(\'production\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
         '<button class="icon-btn small danger" onclick="deleteEntry(\'production\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
         '</div></div></div>';
-    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries yet</div>';
+    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries in this range</div>';
   }
 
   async function submitProductionEntry(){
@@ -1732,6 +1873,7 @@
   }
 
   function renderMobileRaw(){
+    syncMobileFilter('raw');
     var el = document.getElementById('m-raw-rows');
     if (!el) return;
     el.innerHTML = currentRows.raw.map(function(r){
@@ -1740,7 +1882,7 @@
         '<button class="icon-btn small" onclick="openEditModal(\'raw\',' + r.id + ')"><svg><use href="#ic-edit"/></svg></button>' +
         '<button class="icon-btn small danger" onclick="deleteEntry(\'raw\',' + r.id + ')"><svg><use href="#ic-trash"/></svg></button>' +
         '</div></div></div>';
-    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries yet</div>';
+    }).join('') || '<div class="muted-dash" style="padding:12px 2px;">No entries in this range</div>';
   }
 
   async function submitRawMaterialEntry(){
@@ -1772,6 +1914,7 @@
   // STOCK -- split per brick type
   // =========================================================================
   async function renderStockChart(){
+    syncMobileFilter('stock');
     var pStock = early('/stock');
     var pTrend = early('/stock/trend' + qs({date_from: document.getElementById('stock-from').value, date_to: document.getElementById('stock-to').value, brick_type: document.getElementById('stock-brick-type').value || '4 inch'}));
     try {
@@ -1835,6 +1978,7 @@
       grid.appendChild(card);
     });
 
+    syncMobileFilter('ledger');
     var moreWrap = document.getElementById('m-more-ledger-rows');
     if (moreWrap){
       moreWrap.innerHTML = summary.map(function(row){
@@ -1887,9 +2031,11 @@
     document.querySelectorAll('.m-view').forEach(function(v){ v.classList.remove('active'); });
     document.getElementById('m-ledger-detail').classList.add('active');
     document.getElementById('m-ledger-detail-name').textContent = party;
+    // The statement follows the same dates as the Ledger list it was opened from (and says which).
+    document.getElementById('m-ledger-detail-range').textContent = 'Showing entries: ' + mobileFilterSummary('ledger');
     var txns;
     try {
-      txns = await apiRequest('GET', '/ledger/' + encodeURIComponent(party));
+      txns = await apiRequest('GET', '/ledger/' + encodeURIComponent(party) + qs(ledgerRangeInputs()));
     } catch (e) {
       document.getElementById('m-ledger-detail-rows').innerHTML = '<div class="muted-dash">' + e.message + '</div>';
       return;
@@ -2016,9 +2162,14 @@
       if (f && !f.value) f.value = monthStart;
       if (t && !t.value) t.value = today;
     });
+    // On a phone the Ledger starts on "All dates": the balances are then the full running balance (the same figure
+    // as Outstanding credit on Home) and match the statement. The desktop Ledger still starts on this month.
+    var onPhone = !!(window.matchMedia && window.matchMedia('(max-width:700px)').matches);
     var lf = document.getElementById('ledger-from'), lt = document.getElementById('ledger-to');
-    if (lf && !lf.value) lf.value = monthStart;
-    if (lt && !lt.value) lt.value = today;
+    if (!onPhone){
+      if (lf && !lf.value) lf.value = monthStart;
+      if (lt && !lt.value) lt.value = today;
+    }
     var sf = document.getElementById('stock-from'), st = document.getElementById('stock-to');
     if (sf && !sf.value) sf.value = monthStart;
     if (st && !st.value) st.value = today;
@@ -2246,9 +2397,11 @@
     pdfFooterAndSave(doc, 'Shivkrupa_Ledger_Summary.pdf');
   }
 
-  async function downloadLedgerStatementPDF(party){
+  // useRange: the phone passes true, so its statement holds exactly the dates its screen shows. (The desktop button
+  // is left as it was: full history for the party.)
+  async function downloadLedgerStatementPDF(party, useRange){
     if (!party) return;
-    var txns = await apiRequest('GET', '/ledger/' + encodeURIComponent(party));
+    var txns = await apiRequest('GET', '/ledger/' + encodeURIComponent(party) + (useRange ? qs(ledgerRangeInputs()) : ''));
     var rows = txns.map(function(t){
       return {date:fmtDate(t.date), particulars:t.particulars, address:t.address || '', debit:t.debit?formatINR_PDF(t.debit):'-', credit:t.credit?formatINR_PDF(t.credit):'-', balance:formatINR_PDF(t.balance)};
     });
@@ -2264,6 +2417,7 @@
   // ---------- init ----------
   buildOtpBoxes('desktop', 4);
   buildOtpBoxes('mobile', 4);
+  buildMobileFilters();
   document.getElementById('desktop-login-password').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ attemptLogin('desktop'); } });
   document.getElementById('mobile-login-password').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ attemptLogin('mobile'); } });
   resumeSession();
