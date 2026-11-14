@@ -777,14 +777,14 @@
     <h3 id="sales-modal-title">New Sale Entry</h3>
     <div class="entry-form-grid">
       <div class="form-field"><label>Date</label><input type="date" id="sales-form-date"></div>
-      <div class="form-field"><label>Party Name</label><input type="text" id="sales-form-party" list="party-directory-list" oninput="onPartyPicked('sales')" placeholder="Start typing..."></div>
-      <div class="form-field"><label>Site</label><input type="text" id="sales-form-address" list="site-list" autocomplete="off"></div>
+      <div class="form-field"><label>Party Name</label><input type="text" id="sales-form-party" data-capwords autocapitalize="words" list="party-directory-list" oninput="onPartyPicked('sales')" placeholder="Start typing..."></div>
+      <div class="form-field"><label>Site</label><input type="text" id="sales-form-address" data-capwords autocapitalize="words" list="site-list" autocomplete="off"></div>
       <div class="form-field"><label>Mobile</label><input type="text" id="sales-form-mobile"></div>
       <div class="form-field"><label>Brick Type</label><select id="sales-form-brick-type"><option value="4 inch">4 inch</option><option value="6 inch">6 inch</option></select></div>
       <div class="form-field"><label>Quantity (bricks)</label><input type="number" id="sales-form-qty"></div>
       <div class="form-field"><label>Total Value (Rs.)</label><input type="number" id="sales-form-value"></div>
       <div class="form-field"><label>Carting By</label><select id="sales-form-cartby"><option value="Party">Party</option><option value="Company">Company</option></select></div>
-      <div class="form-field"><label>Remarks</label><input type="text" id="sales-form-remarks" maxlength="500" placeholder="Optional" autocomplete="off"></div>
+      <div class="form-field"><label>Remarks</label><input type="text" id="sales-form-remarks" autocapitalize="sentences" maxlength="500" placeholder="Optional" autocomplete="off"></div>
       <div class="form-field"><label>Carting Value (Rs.)</label><input type="number" id="sales-form-cartval"></div>
     </div>
     <div class="entry-form-actions">
@@ -799,11 +799,11 @@
     <h3 id="cash-modal-title">New Cash Book Entry</h3>
     <div class="entry-form-grid">
       <div class="form-field"><label>Date</label><input type="date" id="cash-form-date"></div>
-      <div class="form-field"><label>Name of Client</label><input type="text" id="cash-form-party" list="party-directory-list" oninput="onPartyPicked('cash')" placeholder="Start typing..."></div>
-      <div class="form-field"><label>Site</label><input type="text" id="cash-form-address" list="site-list" autocomplete="off"></div>
+      <div class="form-field"><label>Name of Client</label><input type="text" id="cash-form-party" data-capwords autocapitalize="words" list="party-directory-list" oninput="onPartyPicked('cash')" placeholder="Start typing..."></div>
+      <div class="form-field"><label>Site</label><input type="text" id="cash-form-address" data-capwords autocapitalize="words" list="site-list" autocomplete="off"></div>
       <div class="form-field"><label>Mobile</label><input type="text" id="cash-form-mobile"></div>
       <div class="form-field"><label>Amount Received (Rs.)</label><input type="number" id="cash-form-amount"></div>
-      <div class="form-field"><label>Mode of Payment</label><input type="text" id="cash-form-mode" list="payment-mode-list" placeholder="Cash, UPI, ..."></div>
+      <div class="form-field"><label>Mode of Payment</label><input type="text" id="cash-form-mode" data-capwords autocapitalize="words" list="payment-mode-list" placeholder="Cash, UPI, ..."></div>
     </div>
     <div class="entry-form-actions">
       <button class="btn ghost" onclick="closeModal('cash')">Cancel</button>
@@ -817,8 +817,8 @@
     <h3 id="expenses-modal-title">New Expense Entry</h3>
     <div class="entry-form-grid">
       <div class="form-field"><label>Date</label><input type="date" id="expenses-form-date"></div>
-      <div class="form-field"><label>Particulars</label><input type="text" id="expenses-form-particulars" list="expense-particulars-list" placeholder="Labor Wages, Petrol, Diesel..."></div>
-      <div class="form-field"><label>Details</label><input type="text" id="expenses-form-details" list="expense-details-list" placeholder="Labourer name or vehicle no."></div>
+      <div class="form-field"><label>Particulars</label><input type="text" id="expenses-form-particulars" data-capwords autocapitalize="words" list="expense-particulars-list" placeholder="Labor Wages, Petrol, Diesel..."></div>
+      <div class="form-field"><label>Details</label><input type="text" id="expenses-form-details" data-capwords autocapitalize="words" list="expense-details-list" placeholder="Labourer name or vehicle no."></div>
       <div class="form-field"><label>Amount (Rs.)</label><input type="number" id="expenses-form-amount"></div>
     </div>
     <div class="entry-form-actions">
@@ -837,7 +837,7 @@
       <div class="form-field"><label>Pallets Produced</label><input type="number" id="production-form-pallets" oninput="updateProductionFormBricks()"></div>
       <div class="form-field"><label>Bricks Produced</label><input type="text" id="production-form-bricks" disabled></div>
       <div class="form-field"><label>Cement Bags Used</label><input type="number" id="production-form-cement-bags" min="0" placeholder="Bags for this batch"></div>
-      <div class="form-field"><label>Entered By</label><input type="text" id="production-form-by" placeholder="e.g. Ramesh (Supervisor)"></div>
+      <div class="form-field"><label>Entered By</label><input type="text" id="production-form-by" data-capwords autocapitalize="words" placeholder="e.g. Ramesh (Supervisor)"></div>
     </div>
     <div class="entry-form-actions">
       <button class="btn ghost" onclick="closeModal('production')">Cancel</button>
@@ -851,10 +851,10 @@
     <h3 id="raw-modal-title">New Raw Material Entry</h3>
     <div class="entry-form-grid">
       <div class="form-field"><label>Date</label><input type="date" id="raw-form-date"></div>
-      <div class="form-field"><label>Material</label><input type="text" id="raw-form-material" list="raw-material-list" placeholder="Cement, Sand, Coal..."></div>
+      <div class="form-field"><label>Material</label><input type="text" id="raw-form-material" data-capwords autocapitalize="words" list="raw-material-list" placeholder="Cement, Sand, Coal..."></div>
       <div class="form-field"><label>Quantity</label><input type="number" id="raw-form-quantity"></div>
       <div class="form-field"><label>Cost (Rs.)</label><input type="number" id="raw-form-cost"></div>
-      <div class="form-field"><label>Supplied By</label><input type="text" id="raw-form-supplier" list="raw-supplier-list" placeholder="Supplier name"></div>
+      <div class="form-field"><label>Supplied By</label><input type="text" id="raw-form-supplier" data-capwords autocapitalize="words" list="raw-supplier-list" placeholder="Supplier name"></div>
     </div>
     <div class="entry-form-actions">
       <button class="btn ghost" onclick="closeModal('raw')">Cancel</button>
@@ -1387,6 +1387,54 @@
       document.getElementById(module + '-form-mobile').value = match.mobile;
     }
   }
+
+  // =========================================================================
+  // AUTO-CAPITALISE -- name-type boxes (marked data-capwords) capitalise the first letter of every word as you type:
+  // "sharma builders" becomes "Sharma Builders". It only ever raises a word's first letter, never lowers anything,
+  // so "ABC", "MH 31" or "UPI" stay as typed. Phone keyboards get the same from autocapitalize="words"; this covers
+  // a physical keyboard and pasted text.
+  //
+  // Names are matched exactly on the server ("sharma builders" and "Sharma Builders" would be two different parties),
+  // so a spelling that is already saved is never changed: picking it from the drop-down keeps it exactly, and typing
+  // it with different capitals snaps to the saved spelling when you leave the box.
+  // =========================================================================
+  function listHasExact(el, v){
+    return !!(el.list && Array.prototype.some.call(el.list.options, function(o){ return o.value === v; }));
+  }
+
+  function capitalizeWordsIn(el){
+    var v = el.value;
+    if (listHasExact(el, v)) return;  // an existing saved entry, chosen from the drop-down: keep its spelling
+    var out = v.replace(/(^|\s)([a-z])/g, function(m, sp, ch){ return sp + ch.toUpperCase(); });
+    if (out === v) return;
+    var s = el.selectionStart, e = el.selectionEnd;  // same length, so the cursor can simply stay where it was
+    el.value = out;
+    try { el.setSelectionRange(s, e); } catch (err) { /* not a text box: nothing to restore */ }
+  }
+
+  document.addEventListener('input', function(ev){
+    var el = ev.target;
+    if (el && el.hasAttribute && el.hasAttribute('data-capwords') && !ev.isComposing) capitalizeWordsIn(el);
+  }, true);  // capture: runs before a box's own oninput (the party boxes), which then sees the capitalised text
+  document.addEventListener('compositionend', function(ev){
+    var el = ev.target;
+    if (el && el.hasAttribute && el.hasAttribute('data-capwords')) capitalizeWordsIn(el);
+  }, true);
+
+  // On leaving a box: if what was typed is a saved entry spelled with different capitals, use the saved spelling.
+  document.addEventListener('change', function(ev){
+    var el = ev.target;
+    if (!el || !el.hasAttribute || !el.hasAttribute('data-capwords') || !el.list) return;
+    var typed = el.value.trim();
+    if (!typed || listHasExact(el, typed)) return;
+    var saved = [];
+    Array.prototype.forEach.call(el.list.options, function(o){
+      if (o.value.trim().toLowerCase() === typed.toLowerCase() && saved.indexOf(o.value) < 0) saved.push(o.value);
+    });
+    if (saved.length !== 1) return;  // none, or more than one way it is already saved: leave what was typed
+    el.value = saved[0];
+    el.dispatchEvent(new Event('input', {bubbles: true}));  // lets the party boxes fill in the saved site and mobile
+  }, true);
 
   // =========================================================================
   // MODALS -- shared open/close/clear logic
