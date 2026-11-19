@@ -10,6 +10,7 @@ Two things worth noting because they map straight to blueprint decisions:
   - Sr. No. is computed server-side (max existing + 1) so it can never
     collide, even with two people saving at the same moment.
 """
+import re
 from datetime import date as Date
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
@@ -53,6 +54,41 @@ def list_sales(
     if brick_type:
         q = q.filter(models.Sale.brick_type == brick_type)
     return q.order_by(models.Sale.date.desc(), models.Sale.id.desc()).all()
+
+
+def tidy_remark(text: str) -> str:
+    """A remark as it is shown in the drop-down: spaces squeezed to single ones and the first letter of every
+    word raised ('deliver  tomorrow' -> 'Deliver Tomorrow'). It only ever raises letters, never lowers, so 'UPI' stays 'UPI'."""
+    squeezed = " ".join((text or "").split())
+    return re.sub(r"(^|\s)([a-z])", lambda m: m.group(1) + m.group(2).upper(), squeezed)
+
+
+REMARKS_LIST_LIMIT = 300  # a drop-down with thousands of lines is no use to anyone
+
+
+@router.get("/remarks", response_model=list[str])
+def list_remarks(db: Session = Depends(get_db), user: models.User = Depends(get_current_user)):
+    """Every distinct remark used on a sale, for the Remarks drop-down -- most used first, then most recent.
+    Nothing extra is stored: it is read from the sales themselves, so a new remark appears the moment a sale
+    with it is saved, and goes away only if every sale using it is deleted. 'urgent', 'Urgent ' and 'URGENT'
+    count as one remark (shown with the most recent spelling)."""
+    rows = (
+        db.query(models.Sale.remarks, models.Sale.date, models.Sale.id)
+        .filter(models.Sale.remarks != "")
+        .order_by(models.Sale.date, models.Sale.id)  # oldest first, so the last spelling seen is the newest
+        .all()
+    )
+    seen = {}  # remark lower-cased -> [times used, order last used, spelling]
+    for order, (remark, _date, _id) in enumerate(rows):
+        shown = tidy_remark(remark)
+        if not shown:
+            continue
+        entry = seen.setdefault(shown.casefold(), [0, 0, shown])
+        entry[0] += 1
+        entry[1] = order
+        entry[2] = shown
+    ranked = sorted(seen.values(), key=lambda e: (-e[0], -e[1]))
+    return [e[2] for e in ranked[:REMARKS_LIST_LIMIT]]
 
 
 @router.post("", response_model=schemas.SaleOut)

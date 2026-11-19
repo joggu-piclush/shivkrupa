@@ -784,7 +784,7 @@
       <div class="form-field"><label>Quantity (bricks)</label><input type="number" id="sales-form-qty"></div>
       <div class="form-field"><label>Total Value (Rs.)</label><input type="number" id="sales-form-value"></div>
       <div class="form-field"><label>Carting By</label><select id="sales-form-cartby"><option value="Party">Party</option><option value="Company">Company</option></select></div>
-      <div class="form-field"><label>Remarks</label><input type="text" id="sales-form-remarks" autocapitalize="sentences" maxlength="500" placeholder="Optional" autocomplete="off"></div>
+      <div class="form-field"><label>Remarks</label><input type="text" id="sales-form-remarks" data-capwords autocapitalize="words" list="sales-remarks-list" maxlength="500" placeholder="Optional - pick one or type a new one" autocomplete="off"></div>
       <div class="form-field"><label>Carting Value (Rs.)</label><input type="number" id="sales-form-cartval"></div>
     </div>
     <div class="entry-form-actions">
@@ -870,6 +870,7 @@
 <datalist id="expense-details-list"></datalist>
 <datalist id="raw-material-list"></datalist>
 <datalist id="raw-supplier-list"></datalist>
+<datalist id="sales-remarks-list"></datalist>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -1326,8 +1327,8 @@
 
   async function refreshDatalists(){
     try {
-      // Ask for all seven lists at once (one round trip, not seven in a row), then fill them in the same order.
-      var pParties = early('/parties'), pModes = early('/cash/modes'), pParticulars = early('/expenses/particulars'), pDetails = early('/expenses/details'), pMaterials = early('/raw-materials/materials'), pSuppliers = early('/raw-materials/suppliers'), pBrickTypes = early('/production/brick-types');
+      // Ask for all the lists at once (one round trip, not one after another), then fill them in the same order.
+      var pRemarks = early('/sales/remarks'), pParties = early('/parties'), pModes = early('/cash/modes'), pParticulars = early('/expenses/particulars'), pDetails = early('/expenses/details'), pMaterials = early('/raw-materials/materials'), pSuppliers = early('/raw-materials/suppliers'), pBrickTypes = early('/production/brick-types');
       var parties = await pParties;
       partyDirectory = {};
       parties.forEach(function(p){ partyDirectory[p.name] = {address: p.address, mobile: p.mobile, sites: p.sites || []}; });
@@ -1357,6 +1358,15 @@
       BRICK_TYPES = await pBrickTypes;
     } catch (e) {
       console.error('Could not refresh autocomplete lists:', e.message);
+    }
+    // Past remarks for the Sale form's Remarks box: free text, so every value is escaped. Kept apart from the
+    // lists above so that it can never stop them from loading (and they can never stop it).
+    try {
+      var remarks = await pRemarks;
+      document.getElementById('sales-remarks-list').innerHTML =
+        remarks.map(function(r){ return '<option value="' + escHtml(r) + '"></option>'; }).join('');
+    } catch (e) {
+      console.error('Could not refresh the remarks list:', e.message);
     }
   }
 
