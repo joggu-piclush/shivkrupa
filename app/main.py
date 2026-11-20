@@ -116,49 +116,6 @@ def seed_default_admin():
         db.close()
 
 
-# ---------------------------------------------------------------------------------------------------------------
-# ONE-OFF, at the owner's request: give every entry saved before the app capitalised as you type the same capital
-# letters (see maintenance.py for exactly what is and is not touched). Runs ONCE: a marker file beside the database
-# stops it running again, and a full copy of the database is saved beside it first. Only counts are logged.
-# To be taken out of the code again right after it has run.
-# ---------------------------------------------------------------------------------------------------------------
-@app.on_event("startup")
-def capitalise_existing_entries_once():
-    import datetime
-    import sqlite3
-    from . import maintenance
-    url = engine.url
-    if url.get_backend_name() != "sqlite" or not url.database or url.database == ":memory:":
-        return
-    folder = os.path.dirname(os.path.abspath(url.database))
-    marker = os.path.join(folder, "maintenance-capitalise-entries.done")
-    if os.path.exists(marker):
-        return
-    db = SessionLocal()
-    try:
-        copy_path = os.path.join(folder, "shivkrupa-before-capitalising-" + datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S") + ".db")
-        src, dst = sqlite3.connect(url.database, timeout=30), sqlite3.connect(copy_path)
-        try:
-            src.backup(dst)
-        finally:
-            dst.close()
-            src.close()
-        print("[maintenance] A full copy of the database was saved before correcting the capital letters.")
-        c = maintenance.capitalise_existing_entries(db)
-        db.commit()
-        print("[maintenance] Capital letters corrected: "
-              f"{c['sales']} sale(s), {c['cash']} cash entr{'y' if c['cash'] == 1 else 'ies'}, {c['expenses']} expense(s), "
-              f"{c['production']} production entr{'y' if c['production'] == 1 else 'ies'}, {c['raw_materials']} raw-material entr{'y' if c['raw_materials'] == 1 else 'ies'}; "
-              f"directory: {c['parties_renamed']} name(s) corrected, {c['parties_merged']} duplicate(s) merged.")
-        with open(marker, "w") as f:
-            f.write("done")
-    except Exception as e:  # never stop the app from starting over this
-        db.rollback()
-        print(f"[maintenance] Capital-letter correction skipped: {type(e).__name__}")
-    finally:
-        db.close()
-
-
 @app.on_event("startup")
 def tidy_party_directory():
     """Clears Party Directory names that no Sale or Cash entry uses (left behind when entries were deleted before
