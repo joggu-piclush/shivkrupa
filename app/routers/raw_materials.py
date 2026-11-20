@@ -17,7 +17,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import models, schemas, textfix
 from ..database import get_db
 from ..deps import get_current_user
 
@@ -67,6 +67,7 @@ def create_raw_material(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user),
 ):
+    payload = textfix.tidy(payload, "material", "supplier")  # saved with capitals on every word
     sr_no = str(db.query(models.RawMaterial).count() + 1).zfill(3)
     entry = models.RawMaterial(**payload.model_dump(exclude_unset=True), sr_no=sr_no, created_by=user.username)
     db.add(entry)
@@ -82,6 +83,7 @@ def update_raw_material(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user),
 ):
+    payload = textfix.tidy(payload, "material", "supplier")  # saved with capitals on every word
     entry = db.query(models.RawMaterial).filter(models.RawMaterial.id == entry_id).first()
     if not entry:
         raise HTTPException(status_code=404, detail="Raw material entry not found.")

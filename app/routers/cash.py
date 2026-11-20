@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import models, schemas, textfix
 from ..database import get_db
 from ..deps import get_current_user
 from .sales import party_directory_upsert
@@ -46,6 +46,7 @@ def create_cash(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user),
 ):
+    payload = textfix.tidy(payload, "name", "address", "mode")  # saved with capitals on every word
     entry = models.CashEntry(**payload.model_dump(), created_by=user.username)
     db.add(entry)
     party_directory_upsert(db, payload.name, payload.address, payload.mobile)
@@ -61,6 +62,7 @@ def update_cash(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user),
 ):
+    payload = textfix.tidy(payload, "name", "address", "mode")  # saved with capitals on every word
     entry = db.query(models.CashEntry).filter(models.CashEntry.id == entry_id).first()
     if not entry:
         raise HTTPException(status_code=404, detail="Cash entry not found.")

@@ -10,13 +10,12 @@ Two things worth noting because they map straight to blueprint decisions:
   - Sr. No. is computed server-side (max existing + 1) so it can never
     collide, even with two people saving at the same moment.
 """
-import re
 from datetime import date as Date
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import models, schemas, textfix
 from ..database import get_db
 from ..deps import get_current_user
 from .parties import prune_party_if_unused
@@ -59,8 +58,7 @@ def list_sales(
 def tidy_remark(text: str) -> str:
     """A remark as it is shown in the drop-down: spaces squeezed to single ones and the first letter of every
     word raised ('deliver  tomorrow' -> 'Deliver Tomorrow'). It only ever raises letters, never lowers, so 'UPI' stays 'UPI'."""
-    squeezed = " ".join((text or "").split())
-    return re.sub(r"(^|\s)([a-z])", lambda m: m.group(1) + m.group(2).upper(), squeezed)
+    return textfix.capitalize_words(" ".join((text or "").split()))
 
 
 REMARKS_LIST_LIMIT = 300  # a drop-down with thousands of lines is no use to anyone
@@ -97,6 +95,7 @@ def create_sale(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user),
 ):
+    payload = textfix.tidy(payload, "party_name", "address", "remarks")  # saved with capitals on every word
     max_sr = db.query(models.Sale).count()
     sr_no = str(max_sr + 1).zfill(3)
     sale = models.Sale(**payload.model_dump(), sr_no=sr_no, created_by=user.username)
@@ -114,6 +113,7 @@ def update_sale(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user),
 ):
+    payload = textfix.tidy(payload, "party_name", "address", "remarks")  # saved with capitals on every word
     sale = db.query(models.Sale).filter(models.Sale.id == sale_id).first()
     if not sale:
         raise HTTPException(status_code=404, detail="Sale entry not found.")

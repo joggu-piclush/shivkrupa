@@ -15,7 +15,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import models, schemas, textfix
 from ..database import get_db
 from ..deps import get_current_user
 
@@ -60,6 +60,7 @@ def create_production(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user),
 ):
+    payload = textfix.tidy(payload, "entered_by")  # saved with capitals on every word
     entry = models.Production(
         date=payload.date, brick_type=payload.brick_type, pallets=payload.pallets,
         bricks=bricks_for(payload.brick_type, payload.pallets), cement_bags=payload.cement_bags,
@@ -78,6 +79,7 @@ def update_production(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user),
 ):
+    payload = textfix.tidy(payload, "entered_by")  # saved with capitals on every word
     entry = db.query(models.Production).filter(models.Production.id == entry_id).first()
     if not entry:
         raise HTTPException(status_code=404, detail="Production entry not found.")
